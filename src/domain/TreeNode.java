@@ -1,4 +1,4 @@
-package algorithms.domain;
+package domain;
 
 public class TreeNode {
       public int val;

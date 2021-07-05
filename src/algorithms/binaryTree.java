@@ -1,7 +1,7 @@
 package algorithms;
 
 
-import algorithms.domain.TreeNode;
+import domain.TreeNode;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,6 +1,6 @@
 package algorithms;
 
-import algorithms.domain.ListNode;
+import domain.ListNode;
 
 import java.util.ArrayList;
 import java.util.Stack;
