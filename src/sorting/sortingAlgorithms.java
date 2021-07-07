@@ -105,15 +105,9 @@ public class sortingAlgorithms {
         return a;
     }
 
-//  top3 归并排序：时间复杂度：O(nlogn)
-//           空间复杂度：O(1)
-//           非稳定排序
-//           原地排序
-//  通过递归的方式将大的数组一直分割，直到数组的大小为1，
-//  之后再把两个数组大小为1的合并成一个大小为2的，再把两个大小为2的合并成4的.....
-//  直到全部小的数组合并起来。
 
-    //递归
+//归并排序
+//递归
     public static int[] recurMergeSort(int[] arr, int left, int right){
 
         if(left >= right)
@@ -202,19 +196,13 @@ public class sortingAlgorithms {
         }
     }
 
-//  top1 快速排序：时间复杂度：O(nlogn)
-//           空间复杂度：O(logn)
-//           非稳定排序
-//           原地排序
-//  1. 选择第一个数作为pivot，比pivot小的放左边，比pivot大的放右边。
-//  2. 在左边的数里取第一个作为pivot..
-//     在右边的数里取第一个作为pivot..
+//快速排序
     public static int[] quickSort(int[] arr, int left, int right) {
         if (left < right) {
             //获取中轴元素所处的位置
-//            System.out.println("Pivot:"+arr[left]);
+            System.out.println("Pivot:"+arr[left]);
             int mid = partition(arr, left, right);
-//            System.out.println(Arrays.toString(arr));
+            System.out.println(Arrays.toString(arr));
             //进行分割
             arr = quickSort(arr, left, mid - 1);
             arr = quickSort(arr, mid + 1, right);
@@ -228,11 +216,11 @@ public class sortingAlgorithms {
         int i = left + 1;
         int j = right;
         while (true) {
-            // 向右找到第一个小于等于 pivot 的元素位置
+            // 向右找到第一个大于 pivot 的元素位置
             while (i <= j && arr[i] <= pivot) i++;
-            // 向左找到第一个大于等于 pivot 的元素位置
-            while(i <= j && arr[j] >= pivot ) j--;
-            if(i >= j)
+            // 向左找到第一个小于 pivot 的元素位置
+            while (i <= j && arr[j] >= pivot ) j--;
+            if (i >= j)
                 break;
             //交换两个元素的位置，使得左边的元素不大于pivot,右边的不小于pivot
             int temp = arr[i];

@@ -1,6 +1,7 @@
 package algorithms;
 
 
+import domain.Node;
 import domain.TreeNode;
 
 import java.util.ArrayList;
@@ -123,6 +124,11 @@ public class binaryTree {
         Collections.reverse(res);
         return res;
     }
+    //二叉树节点总数
+    public static int count(TreeNode root){
+        if (root == null) return 0;
+        return 1 + count(root.left) + count(root.right);
+    }
 
     /**
      * 剑指Offer55 二叉树最大深度
@@ -140,9 +146,63 @@ public class binaryTree {
      *    15   7
      * 返回它的最大深度 3 。
      */
-
     public static int maxDepth(TreeNode root){
         if (root==null) return 0;
         return Math.max(maxDepth(root.left), maxDepth(root.right))+1;
     }
+
+    //LC226 翻转二叉树
+    public static TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+
+        TreeNode tmp = root.left;
+        root.left = root.right;
+        root.right = tmp;
+
+        invertTree(root.left);
+        invertTree(root.right);
+
+        return root;
+    }
+
+    //LC116 [填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
+    public static Node connect(Node root) {
+        if (root == null) return null;
+        connectTwoNodes(root.left, root.right);
+        return root;
+    }
+    public static void connectTwoNodes(Node leftNode, Node rightNode) {
+        if (leftNode == null || rightNode == null) return;
+
+        leftNode.next = rightNode;
+
+        connectTwoNodes(leftNode.left, leftNode.right);
+        connectTwoNodes(rightNode.left, rightNode.right);
+
+        connectTwoNodes(leftNode.right, rightNode.left);
+    }
+
+    //
+    public static void flatten(TreeNode root) {
+        if (root == null) return;
+
+        flatten(root.left);
+        flatten(root.right);
+
+        //记录原始的右子节点
+        TreeNode originRight = root.right;
+
+        //将左子树作为右子数，左子数置为空
+        root.right = root.left;
+        root.left = null;
+
+        //将原先的右子树接到当前右子树末端
+        while (root.right != null){
+            root = root.right;
+        }
+        root.right = originRight;
+    }
+
+
+
 }

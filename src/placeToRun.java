@@ -22,9 +22,9 @@ public class placeToRun {
 
     public static void runSortingAlgorithms(){
         initOriginArrayForSorting();
-        System.out.println("Results:");
         //需测试的排序算法
         int[] result = sortingAlgorithms.quickSort(origin,0, origin.length-1);
+        printArray("Result:", result);
     }
 
     private static void printArray(String pre,int[] a) {
@@ -35,7 +35,7 @@ public class placeToRun {
     }
 
     public static void main(String[] args) {
-        //runSortingAlgorithms();
+        runSortingAlgorithms();
         //lookup.testSetZeros();
         //lookup.testMaxArea();
         //lookup.testLongestConsecutive();
@@ -44,10 +44,10 @@ public class placeToRun {
         //hashmap.testTwoSum();
         //recursive.testFactorized(5);
         //recursive.testFib(7);
-        int[] a = {26, 5, 98, 108, 28, 99, 100, 56, 34, 1 };
-        printArray("排序前：",a);
-        int[] arr = sortingAlgorithms.recurMergeSort(a, 0, a.length-1);
-        printArray("排序后：",arr);
+//        int[] a = {26, 5, 98, 108, 28, 99, 100, 56, 34, 1 };
+//        printArray("排序前：",a);
+//        int[] arr = sortingAlgorithms.recurMergeSort(a, 0, a.length-1);
+//        printArray("排序后：",arr);
 
 
 
