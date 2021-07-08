@@ -25,7 +25,6 @@ public class binaryTree {
         ArrayList<Integer> result = new ArrayList<Integer>();
         preTra(root, result);
         return result;
-
     }
     public void preTra (TreeNode node, ArrayList<Integer> result){
         if(node==null)
@@ -106,6 +105,23 @@ public class binaryTree {
      * https://blog.csdn.net/ibelieve8013/article/details/103059101
      * 左、右、根
      */
+
+    //递归
+    public ArrayList<Integer> postorderTraversalByRecursive (TreeNode root) {
+        // write code here
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        postTra(root, result);
+        return result;
+    }
+    public void postTra(TreeNode node, ArrayList<Integer> res){
+        if(node==null)
+            return;
+        postTra(node.left, res);
+        postTra(node.right, res);
+        res.add(node.val);
+    }
+
+    //迭代
     public ArrayList<Integer> postorderTraversal (TreeNode root) {
         // write code here
         ArrayList<Integer> res = new ArrayList<Integer>();
@@ -124,6 +140,7 @@ public class binaryTree {
         Collections.reverse(res);
         return res;
     }
+
     //二叉树节点总数
     public static int count(TreeNode root){
         if (root == null) return 0;
@@ -165,7 +182,7 @@ public class binaryTree {
         return root;
     }
 
-    //LC116 [填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
+    //[LC116 填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
     public static Node connect(Node root) {
         if (root == null) return null;
         connectTwoNodes(root.left, root.right);
@@ -182,7 +199,7 @@ public class binaryTree {
         connectTwoNodes(leftNode.right, rightNode.left);
     }
 
-    //
+    //[LC114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
     public static void flatten(TreeNode root) {
         if (root == null) return;
 
@@ -203,6 +220,96 @@ public class binaryTree {
         root.right = originRight;
     }
 
+    //[LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
+    public static TreeNode constructMaximumBinaryTree(int[] nums) {
+        return build(nums, 0, nums.length-1);
+    }
 
+    public static TreeNode build(int[] nums, int lo, int hi ){
+        if (!(lo <= hi))
+            return null;
+
+        //找到数组中的最大value及其index
+        int maxVal = Integer.MIN_VALUE;
+        int maxValIdx = -1;
+        for (int i=lo; i<=hi; i++){
+            if (nums[i]>maxVal){
+                maxVal = nums[i];
+                maxValIdx = i;
+            }
+        }
+
+        //构造树的根
+        TreeNode root = new TreeNode(maxVal);
+        //define树的左子树
+        root.left = build(nums, lo, maxValIdx-1);
+        //define树的右子树
+        root.right = build(nums, maxValIdx+1, hi);
+
+        return root;
+    }
+
+    //[105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+    public static TreeNode buildTreeFromInAndPre(int[] preorder, int[] inorder) {
+        return buildFromInAndPre(preorder, 0, preorder.length-1,
+                inorder, 0, inorder.length-1);
+    }
+
+    public static TreeNode buildFromInAndPre(int[] preorder, int preStart, int preEnd,
+                          int[] inorder, int inStart, int inEnd){
+        if (!(preStart <= preEnd))
+            return null;
+
+        //遍历inorder[] 找root的值在inorder中的位置
+        int rootVal = preorder[preStart];
+        int rootValInIdx = -1;
+        for (int i=inStart; i<=inEnd; i++){
+            if (inorder[i]==rootVal){
+                rootValInIdx = i;
+                break;
+            }
+        }
+
+        //root.left的元素总数
+        int leftSize = rootValInIdx - inStart;
+
+        //构造左右子树
+        TreeNode root = new TreeNode(rootVal);
+        root.left = buildFromInAndPre(preorder, preStart+1, preStart+1+(leftSize-1),
+                inorder, inStart, rootValInIdx - 1);
+        root.right = buildFromInAndPre(preorder, preStart+1+leftSize, preEnd,
+                inorder, rootValInIdx+1, inEnd);
+
+        return root;
+    }
+
+    //[LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+    public TreeNode buildTreeFromInAndPost(int[] inorder, int[] postorder) {
+        return buildFromInAndPost(postorder, 0, postorder.length-1,
+                inorder, 0, inorder.length-1);
+    }
+    public TreeNode buildFromInAndPost(int[] postorder, int postStart, int postEnd,
+                          int[] inorder, int inStart, int inEnd){
+        if (!(postStart <= postEnd))
+            return null;
+
+        int rootVal = postorder[postEnd];
+        int rootValInIdx = -1;
+        for (int i=inStart; i<=inEnd; i++){
+            if (inorder[i]==rootVal){
+                rootValInIdx = i;
+                break;
+            }
+        }
+
+        int leftSize = rootValInIdx - inStart;
+
+        TreeNode root = new TreeNode(rootVal);
+        root.left = buildFromInAndPost(postorder, postStart, postStart+leftSize-1,
+                inorder, inStart, rootValInIdx-1);
+        root.right = buildFromInAndPost(postorder, postStart+leftSize, postEnd-1,
+                inorder, rootValInIdx+1, inEnd);
+        return root;
+    }
 
 }
