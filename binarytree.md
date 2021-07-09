@@ -323,7 +323,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-- #### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+- ### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
 
     根据一棵树的前序遍历与中序遍历构造二叉树。
 
@@ -443,7 +443,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     ```Java
     public TreeNode buildTree(int[] inorder, int[] postorder) {
-            return build(postorder, 0, postorder.length-1,
+      	return build(postorder, 0, postorder.length-1,
                         inorder, 0, inorder.length-1);
     }
     public TreeNode build(int[] postorder, int postStart, int postEnd,
@@ -514,7 +514,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     ```java
     public List<TreeNode> findDuplicateSubtrees(TreeNode root) {
-        //！！！注意list的创建方式！
+        //！！！注意list和hashmap的创建方式！
         List<TreeNode> res = new ArrayList<>();
         //存子树的样子及其出现频率
         Map<String, Integer> nodesFreq = new HashMap<>();
@@ -523,8 +523,8 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     
     public String postTraverse(TreeNode root, List<TreeNode> res, Map<String, Integer> nodesFreq){
-    		if (root == null)
-        		return "#";
+      	if (root == null)
+          	return "#";
             
         String left = postTraverse(root.left, res, nodesFreq);
         String right = postTraverse(root.right, res, nodesFreq);
@@ -532,13 +532,11 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     
         //此子树未出现过
         if (nodesFreq.get(subtree)==null){
-        		nodesFreq.put(subtree, 1);
-        		return subtree;
+          	nodesFreq.put(subtree, 1);
+          	return subtree;
         }
-    
-    
+      
         Integer freq = nodesFreq.get(subtree);
-    
         if (freq==1){
         		//此子树只出现过一次，添加到结果集
         		res.add(root);
@@ -548,7 +546,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
         		//此子树出现超过一次，不添加到结果集
         		nodesFreq.put(subtree, freq+1);
         }
-    
+      
         return subtree;
     }
     ```
