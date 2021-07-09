@@ -4,9 +4,7 @@ package algorithms;
 import domain.Node;
 import domain.TreeNode;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Stack;
+import java.util.*;
 
 public class binaryTree {
 
@@ -310,6 +308,46 @@ public class binaryTree {
         root.right = buildFromInAndPost(postorder, postStart+leftSize, postEnd-1,
                 inorder, rootValInIdx+1, inEnd);
         return root;
+    }
+
+    //[LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
+    public static List<TreeNode> findDuplicateSubtrees(TreeNode root) {
+        //！！！注意list的创建方式！
+        List<TreeNode> res = new ArrayList<>();
+        //存子树的样子及其出现频率
+        Map<String, Integer> nodesFreq = new HashMap<>();
+        postTraverse(root, res, nodesFreq);
+        return res;
+    }
+
+    public static String postTraverse(TreeNode root, List<TreeNode> res, Map<String, Integer> nodesFreq){
+        if (root == null)
+            return "#";
+
+        String left = postTraverse(root.left, res, nodesFreq);
+        String right = postTraverse(root.right, res, nodesFreq);
+        String subtree = root.val + "," + left + ","+ right;
+
+        //此子树未出现过
+        if (nodesFreq.get(subtree)==null){
+            nodesFreq.put(subtree, 1);
+            return subtree;
+        }
+
+
+        Integer freq = nodesFreq.get(subtree);
+
+        if (freq==1){
+            //此子树只出现过一次，添加到结果集
+            res.add(root);
+            //更新此子树的出现频率为2（相当于replace方法）
+            nodesFreq.put(subtree, freq+1);
+        } else {
+            //此子树出现超过一次，不添加到结果集
+            nodesFreq.put(subtree, freq+1);
+        }
+
+        return subtree;
     }
 
 }

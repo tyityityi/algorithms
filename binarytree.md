@@ -28,7 +28,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 }
 ```
 
-- [ ] ##### 前序遍历 preorder traverse
+1. ##### 前序遍历 preorder traverse
 
     <img src="imgs/image-20210708153415301.png" alt="image-20210708153415301" style="width:67%;" />
 
@@ -42,7 +42,9 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- [ ] ##### 中序遍历 inorder traverse
+    ##### 
+
+2. ##### 中序遍历 inorder traverse
 
     ```java
     public void inTra(TreeNode node, ArrayList<Integer> res){
@@ -54,7 +56,9 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- [ ] ##### 后序遍历 postorder traverse
+    
+
+3. ##### 后序遍历 postorder traverse
 
     <img src="imgs/image-20210708153509414.png" alt="image-20210708153509414" style="width:67%;" />
 
@@ -67,6 +71,8 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
       	res.add(node.val);
     }
     ```
+
+##### 
 
 - ### [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
 
@@ -239,7 +245,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- [ ] ### [LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
+- ### [LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
 
     给定一个不含重复元素的整数数组 nums 。一个以此数组直接递归构建的 最大二叉树 定义如下：
 
@@ -317,7 +323,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-- [ ] #### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+- #### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
 
     根据一棵树的前序遍历与中序遍历构造二叉树。
 
@@ -336,6 +342,12 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     9  20
     	/  \
      15   7
+    ```
+
+    函数签名：
+
+    ```JAVA
+    TreeNode buildTree(int[] inorder, int[] postorder)
     ```
 
     ### <u>**思路**</u>：递归construct root
@@ -393,7 +405,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-- [ ] #### [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+- ### [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
 
     根据一棵树的中序遍历与后序遍历构造二叉树。
 
@@ -414,6 +426,14 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     	/  \
      15   7
     ```
+
+    函数签名：
+
+    ```JAVA
+    TreeNode buildTree(int[] inorder, int[] postorder)
+    ```
+
+    
 
     ### <u>**思路**</u>
 
@@ -451,6 +471,86 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-    
+- ### [LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
 
-- [ ] b
+    给定一棵二叉树，返回所有重复的子树。对于同一类的重复子树，你只需要返回其中任意一棵的根结点即可。
+
+    两棵树重复是指它们具有相同的结构以及相同的结点值。
+
+    示例 1：
+
+            1
+           / \
+          2   3
+         /   / \
+        4   2   4
+           /
+          4
+    下面是两个重复的子树：
+
+          2
+         /
+        4
+    和
+
+        4
+    因此，你需要以列表的形式返回上述重复子树的根结点。
+
+    函数签名如下：
+
+    ```java
+    List<TreeNode> findDuplicateSubtrees(TreeNode root);
+    ```
+
+    ### <u>**思路**</u>
+
+    1、以我为根的这棵二叉树（子树）长啥样？
+
+    2、以其他节点为根的子树都长啥样？
+
+    3、对比子树们，并避免 重复添加 相同的子树 到结果List
+
+    ### <u>**Solution**</u>
+
+    ```java
+    public List<TreeNode> findDuplicateSubtrees(TreeNode root) {
+        //！！！注意list的创建方式！
+        List<TreeNode> res = new ArrayList<>();
+        //存子树的样子及其出现频率
+        Map<String, Integer> nodesFreq = new HashMap<>();
+        postTraverse(root, res, nodesFreq);
+        return res;
+    }
+    
+    public String postTraverse(TreeNode root, List<TreeNode> res, Map<String, Integer> nodesFreq){
+    		if (root == null)
+        		return "#";
+            
+        String left = postTraverse(root.left, res, nodesFreq);
+        String right = postTraverse(root.right, res, nodesFreq);
+        String subtree = root.val + "," + left + ","+ right;
+    
+        //此子树未出现过
+        if (nodesFreq.get(subtree)==null){
+        		nodesFreq.put(subtree, 1);
+        		return subtree;
+        }
+    
+    
+        Integer freq = nodesFreq.get(subtree);
+    
+        if (freq==1){
+        		//此子树只出现过一次，添加到结果集
+        		res.add(root);
+        		//更新此子树的出现频率为2（相当于replace方法）
+        		nodesFreq.put(subtree, freq+1);
+        } else {
+        		//此子树出现超过一次，不添加到结果集
+        		nodesFreq.put(subtree, freq+1);
+        }
+    
+        return subtree;
+    }
+    ```
+
+    

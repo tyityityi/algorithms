@@ -4,6 +4,8 @@ import sorting.sortingAlgorithms;
 import algorithms.recursive;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class placeToRun {
 
@@ -35,7 +37,7 @@ public class placeToRun {
     }
 
     public static void main(String[] args) {
-        runSortingAlgorithms();
+        //runSortingAlgorithms();
         //lookup.testSetZeros();
         //lookup.testMaxArea();
         //lookup.testLongestConsecutive();
@@ -48,6 +50,13 @@ public class placeToRun {
 //        printArray("排序前：",a);
 //        int[] arr = sortingAlgorithms.recurMergeSort(a, 0, a.length-1);
 //        printArray("排序后：",arr);
+        Map<String, Integer> nodesFreq = new HashMap<>();
+        nodesFreq.put("s",0);
+        nodesFreq.put("s",1);
+
+        int freq = nodesFreq.get("a");
+        System.out.println(freq);
+
 
 
 
