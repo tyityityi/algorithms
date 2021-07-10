@@ -2,7 +2,7 @@
 
 ------
 
-- ### 基础二叉树算法
+- ## 基础二叉树算法
 
 #### 二叉树节点总数
 
@@ -28,7 +28,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 }
 ```
 
-1. ##### 前序遍历 preorder traverse
+1. ##### 前序遍历 preorder traverse(顺序：1root 2left 3right)
 
     <img src="imgs/image-20210708153415301.png" alt="image-20210708153415301" style="width:67%;" />
 
@@ -44,7 +44,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     ##### 
 
-2. ##### 中序遍历 inorder traverse
+2. ##### 中序遍历 inorder traverse (顺序：1left 2root 3right)
 
     ```java
     public void inTra(TreeNode node, ArrayList<Integer> res){
@@ -58,7 +58,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-3. ##### 后序遍历 postorder traverse
+3. ##### 后序遍历 postorder traverse (顺序：1left 2right 3root)
 
     <img src="imgs/image-20210708153509414.png" alt="image-20210708153509414" style="width:67%;" />
 
@@ -74,7 +74,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
 ##### 
 
-- ### [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
+- ## [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
 
     ```wiki
     给定二叉树 [3,9,20,null,null,15,7]，
@@ -96,7 +96,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- ###  [LC226.翻转二叉树](https://leetcode-cn.com/problems/invert-binary-tree/)
+- ##  [LC226.翻转二叉树](https://leetcode-cn.com/problems/invert-binary-tree/)
 
     ```wiki
     翻转一棵二叉树。
@@ -137,7 +137,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
         }
     ```
 
-- ### [LC116.填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
+- ## [LC116.填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
 
     给定一个 完美二叉树 ，其所有叶子节点都在同一层，每个父节点都有两个子节点。二叉树定义如下：
 
@@ -187,7 +187,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- ### [LC114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
+- ## [LC114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
 
     给你二叉树的根结点 root ，请你将它展开为一个单链表：
 
@@ -245,7 +245,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- ### [LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
+- ## [LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
 
     给定一个不含重复元素的整数数组 nums 。一个以此数组直接递归构建的 最大二叉树 定义如下：
 
@@ -323,7 +323,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-- ### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+- ## [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
 
     根据一棵树的前序遍历与中序遍历构造二叉树。
 
@@ -405,7 +405,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
     
 
-- ### [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+- ## [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
 
     根据一棵树的中序遍历与后序遍历构造二叉树。
 
@@ -471,7 +471,7 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-- ### [LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
+- ## [LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
 
     给定一棵二叉树，返回所有重复的子树。对于同一类的重复子树，你只需要返回其中任意一棵的根结点即可。
 
