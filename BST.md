@@ -418,4 +418,121 @@
     }
     ```
 
+- ## [LC96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)
+
+    给你一个整数 `n` ，求恰由 `n` 个节点组成且节点值从 `1` 到 `n` 互不相同的 **二叉搜索树** 有多少种？返回满足题意的二叉搜索树的种数。
+
+    示例1:
+
+    <img src="https://assets.leetcode.com/uploads/2021/01/18/uniquebstn3.jpg" alt="img" style="width:80%;" />
+
+    ```
+    输入：n = 3
+    输出：5
+    ```
+
+    函数签名：
+
+    ```java
+    public int numTrees(int n)	
+    ```
+
+    ### <u>**思路**</u>
+
+    如果固定 `3` 作为**根节点**，左子树节点就是 `{1,2}` 的组合，右子树就是 `{4,5}` 的组合。
+
+    **左子树的组合数和右子树的组合数乘积**就是 `3` 作为根节点时的 BST 个数。
+
+    其他数作为根节点的也是同样的套路。
+
+    ### <u>**Solution**</u>
+
+    ```java
+    int[][] memo;
+    public int numTrees(int n) {
+      	// 备忘录的值初始化为 0
+      	memo = new int[n+1][n+1];
+      	return countNumTrees(1, n);
+    }
+    public int countNumTrees(int lo, int hi){
+        //当 lo > hi 闭区间 [lo, hi] 肯定是个空区间，也就对应着空节点 null
+      	//当n=5，以5为根结点时，极端情况是左子树：[12345]，右子树：[]
+      	//所以要返回 1 而不能返回 0。
+        if(lo>=hi)
+        		return 1;
+    
+        if(memo[lo][hi]!=0)
+        		return memo[lo][hi];
+    
+        int res = 0;
+        for(int i=lo; i<=hi; i++){
+            // i 的值作为根节点 root
+            int left = countNumTrees(lo, i-1);
+            int right = countNumTrees(i+1, hi);
+            // 左右子树的组合数乘积是 BST 的总数
+            res += left*right;
+      	}
+      	memo[lo][hi] = res; 
+    
+      	return memo[lo][hi];
+    }
+    ```
+
+- ## [LC95. 不同的二叉搜索树 II](https://leetcode-cn.com/problems/unique-binary-search-trees-ii/)
+
+    同上(LC96), 给你一个整数 `n` ，请你生成并返回所有由 `n` 个节点组成且节点值从 `1` 到 `n` 互不相同的不同 **二叉搜索树** 。可以按 **任意顺序** 返回答案。
+
+    函数签名：
+
+    ```java
+    public List<TreeNode> generateTrees(int n);
+    ```
+
+    ### <u>**思路**</u>
+
+    1、穷举 `root` 节点的所有可能。
+
+    2、递归构造出左右子树的所有合法 BST。
+
+    3、给 `root` 节点穷举所有左右子树的组合。
+
+    ### <u>**Solution**</u>
+
+    ```Java
+    public List<TreeNode> generateTrees(int n) {
+        // 构造闭区间 [1, n] 组成的 BST 
+        return generateAllTrees(1, n);
+    }
+    
+    /* 构造闭区间 [lo, hi] 组成的 BST */
+    public List<TreeNode> generateAllTrees(int lo, int hi){
+        List<TreeNode> res = new ArrayList<>();
+        if(lo>hi){
+            //我也不知道为什么..就是要加null
+            res.add(null);
+            return res;
+        }
+    
+        // 1、穷举 root 节点的所有可能。
+        for(int i=lo; i<=hi; i++){
+            // 2、递归构造出左右子树的所有合法 BST。
+            List<TreeNode> leftTrees = generateAllTrees(lo, i-1);
+            List<TreeNode> rightTrees = generateAllTrees(i+1, hi);
+            // 3、给 root 节点穷举所有左右子树的组合。
+            for(TreeNode left: leftTrees){
+                for(TreeNode right: rightTrees){
+                    // i 作为根节点 root 的值
+                    TreeNode root = new TreeNode(i);
+                    root.left = left;
+                    root.right = right;
+                    res.add(root);
+            		}
+          	}
+        }
+        return res;
+    }
+    
+    
+    ```
+
     

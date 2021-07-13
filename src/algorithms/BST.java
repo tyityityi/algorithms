@@ -2,6 +2,9 @@ package algorithms;
 
 import domain.TreeNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BST {
     /**
      * [LC230. 二叉搜索树中第K小的元素](https://leetcode-cn.com/problems/kth-smallest-element-in-a-bst/)
@@ -146,6 +149,76 @@ public class BST {
         }
         return root;
     }
+
+    /**
+     * [LC96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)
+     */
+    int[][] memo;
+    public int numTrees(int n) {
+        // 备忘录的值初始化为 0
+        memo = new int[n+1][n+1];
+        return countNumTrees(1, n);
+    }
+    public int countNumTrees(int lo, int hi){
+        //当 lo > hi 闭区间 [lo, hi] 肯定是个空区间，也就对应着空节点 null
+        //当n=5，以5为根结点时，极端情况是左子树：[12345]，右子树：[]
+        //所以要返回 1 而不能返回 0。
+        if(lo>=hi)
+            return 1;
+
+        if(memo[lo][hi]!=0)
+            return memo[lo][hi];
+
+        int res = 0;
+        for(int i=lo; i<=hi; i++){
+            // i 的值作为根节点 root
+            int left = countNumTrees(lo, i-1);
+            int right = countNumTrees(i+1, hi);
+            // 左右子树的组合数乘积是 BST 的总数
+            res += left*right;
+        }
+        memo[lo][hi] = res;
+
+        return memo[lo][hi];
+    }
+
+    /**
+     * [LC95. 不同的二叉搜索树 II](https://leetcode-cn.com/problems/unique-binary-search-trees-ii/)
+     */
+    public List<TreeNode> generateTrees(int n) {
+        // 构造闭区间 [1, n] 组成的 BST
+        return generateAllTrees(1, n);
+    }
+
+    /* 构造闭区间 [lo, hi] 组成的 BST */
+    public List<TreeNode> generateAllTrees(int lo, int hi){
+        List<TreeNode> res = new ArrayList<>();
+        if(lo>hi){
+            //我也不知道为什么..就是要加null
+            res.add(null);
+            return res;
+        }
+
+        // 1、穷举 root 节点的所有可能。
+        for(int i=lo; i<=hi; i++){
+            // 2、递归构造出左右子树的所有合法 BST。
+            List<TreeNode> leftTrees = generateAllTrees(lo, i-1);
+            List<TreeNode> rightTrees = generateAllTrees(i+1, hi);
+            // 3、给 root 节点穷举所有左右子树的组合。
+            for(TreeNode left: leftTrees){
+                for(TreeNode right: rightTrees){
+                    // i 作为根节点 root 的值
+                    TreeNode root = new TreeNode(i);
+                    root.left = left;
+                    root.right = right;
+                    res.add(root);
+                }
+            }
+        }
+        return res;
+    }
+
+
 
 
 
