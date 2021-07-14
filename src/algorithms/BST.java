@@ -218,6 +218,49 @@ public class BST {
         return res;
     }
 
+    /**
+     * [LC1373. 二叉搜索子树的最大键值和](https://leetcode-cn.com/problems/maximum-sum-bst-in-binary-tree/)
+     */
+    //此处初始最小值要为0，因为节点出现负值也算0；
+    int maxSum = 0;
+    public int maxSumBST(TreeNode root) {
+        int[] res = findMaxSumBST(root);
+        return maxSum;
+    }
+    public int[] findMaxSumBST(TreeNode root){
+        if(root==null){
+            return new int[]{1, Integer.MAX_VALUE, Integer.MIN_VALUE, 0};
+        }
+
+        int[] left = findMaxSumBST(root.left);
+        int[] right = findMaxSumBST(root.right);
+
+        int[] res = new int[4];
+        //判断此root为根节点是否为合法的BST
+        if(left[0]==1
+                && right[0]==1
+                && root.val>left[2]
+                && root.val<right[1]){
+            //左右子树为BST，且root大于左子树最大，小于右子树最小
+            //res[0] 记录以 root 为根的二叉树是否是 BST
+            res[0] = 1;
+            //res[1] 记录以 root 为根的二叉树所有节点中的最小值；
+            //这里min取root.val是因为叶子节点的left[1]是初始值，要将其替换为叶子节点的root.val
+            //除叶子节点外min都是取left[1]的值
+            res[1] = Math.min(root.val, left[1]);
+            //res[2] 记录以 root 为根的二叉树所有节点中的最大值；
+            //用Math.max的道理同res[1]用min
+            res[2] = Math.max(root.val, right[2]);
+            //res[3] 记录以 root 为根的二叉树所有节点值之和。
+            res[3] = left[3] + right[3] + root.val;
+            //使用全局变量maxSum记录最大值
+            maxSum = Math.max(maxSum, res[3]);
+        } else {
+            res[0] = 0;
+            //其他的值没必要计算，因为进不去这个else对应的if判断
+        }
+        return res;
+    }
 
 
 

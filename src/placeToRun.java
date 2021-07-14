@@ -59,7 +59,7 @@ public class placeToRun {
 //        System.out.println(freq);
 
         int[][] memo = new int[5][5];
-        System.out.println(memo[4][4]);
+        System.out.println(memo[5][5]);
 
 
 

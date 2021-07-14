@@ -30,6 +30,8 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
 1. ##### 前序遍历 preorder traverse(顺序：1root 2left 3right)
 
+    前序遍历可以实现**二叉树的序列化与反序列化**（LC297）
+
     <img src="imgs/image-20210708153415301.png" alt="image-20210708153415301" style="width:67%;" />
 
     ```java
@@ -60,6 +62,8 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
 
 3. ##### 后序遍历 postorder traverse (顺序：1left 2right 3root)
 
+    **如果当前节点要做的事情需要通过左右子树的计算结果推导出来，就要用到后序遍历**。
+
     <img src="imgs/image-20210708153509414.png" alt="image-20210708153509414" style="width:67%;" />
 
     ```java
@@ -72,7 +76,13 @@ public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
     }
     ```
 
-##### 
+- ## [LC297. 二叉树的序列化与反序列化](https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/)
+
+    通过前序遍历与后序遍历实现，必须记录空指针信息
+
+    详情：
+
+    https://labuladong.gitbook.io/algo/mu-lu-ye-1/mu-lu-ye-1/er-cha-shu-de-xu-lie-hua
 
 - ## [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
 
