@@ -350,4 +350,111 @@ public class binaryTree {
         return subtree;
     }
 
+    /**
+     * [LC297. 二叉树的序列化与反序列化](https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/)
+     */
+    //后序遍历实现
+
+    // Encodes a tree to a single string.
+    StringBuilder sb = new StringBuilder();
+    public String serialize(TreeNode root) {
+        serializeTraverse(root);
+        return sb.toString();
+    }
+    public void serializeTraverse(TreeNode root){
+        if(root==null){
+            sb.append("#").append(",");
+            return;
+        }
+        //后序遍历
+        serializeTraverse(root.left);
+        serializeTraverse(root.right);
+        sb.append(root.val).append(",");
+        return;
+    }
+
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        //这里也可用ArrayList，因为两种List在列表末尾增加一个元素所花的开销都是固定的
+        //用LinkedList是因为它有removeLast()方法，ArrayList则需要remove(nodes.size())
+        LinkedList<Integer> nodes = new LinkedList<>();
+        for(String val: data.split(",")){
+            if(val.equals("#")){
+                //Null的情况
+                nodes.addLast(Integer.MIN_VALUE);
+            } else{
+                nodes.addLast(Integer.parseInt(val));
+            }
+        }
+        return deserializeBuild(nodes);
+    }
+    public TreeNode deserializeBuild(LinkedList<Integer> nodes){
+        if(nodes.isEmpty())
+            return null;
+        // 列表最右侧是根节点
+        Integer val = nodes.removeLast();
+        if(val==Integer.MIN_VALUE)
+            return null;
+        TreeNode root = new TreeNode(val);
+        //这里是先right再left，因为后序遍历是从后往前的顺序
+        root.right = deserializeBuild(nodes);
+        root.left = deserializeBuild(nodes);
+        return root;
+    }
+
+    /**
+     * [LC222. 完全二叉树的节点个数](https://leetcode-cn.com/problems/count-complete-tree-nodes/) O(logN*logN)
+     */
+    public int countNodes(TreeNode root) {
+        if(root==null)
+            return 0;
+
+        //root的左右子树一定会有一棵满二叉树
+        //满二叉树的节点计算方法
+        TreeNode l = root;
+        TreeNode r = root;
+        int hl = 1;
+        int hr = 1;
+        while(l.left!=null){
+            l = l.left;
+            hl += 1;
+        }
+        while(r.right!=null){
+            r = r.right;
+            hr += 1;
+        }
+        if(hl==hr){
+            //满二叉树的节点总数就是 2^h - 1
+            //Math.pow返回double类型
+            return (int)Math.pow(2, hl) - 1;
+        }
+
+        //普通二叉树的节点计算方法
+        //这两个递归只有一个会真的递归下去，另一个一定会触发 hl == hr (因为是满二叉树)而立即返回，不会递归下去。
+        return 1 + countNodes(root.left) + countNodes(root.right);
+    }
+
+    /**
+     * [LC236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+     */
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if(root==null)
+            return null;
+        //即使其中一点不存在于以`root`为根的树中，也应该返回`root`节点本身。
+        if(root==p || root==q)
+            return root;
+
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+        //后序遍历位置
+        //情况 1，如果`p`和`q`都**在**以`root`为根的树中，返回**root**
+        if(left!=null && right!=null)
+            return root;
+        //情况 2，如果`p`和`q`都**不在**以`root`为根的树中，返回**null**
+        if(left==null && right==null)
+            return null;
+        //情况 3，返回不为空的那个子树
+        return left!=null? left: right;
+    }
 }

@@ -5,6 +5,7 @@ import algorithms.recursive;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class placeToRun {
@@ -58,10 +59,13 @@ public class placeToRun {
 //        int freq = nodesFreq.get("a");
 //        System.out.println(freq);
 
-        int[][] memo = new int[5][5];
-        System.out.println(memo[5][5]);
+//        int[][] memo = new int[5][5];
+//        System.out.println(memo[5][5]);
 
-
+//        LinkedList<Integer> nodes = new LinkedList<>();
+//        nodes.addLast(1);
+//        System.out.println(nodes.removeLast());
+//        System.out.println(nodes.removeLast());//报错，NoSuchElementException
 
     }
 }
