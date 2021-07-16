@@ -3,10 +3,7 @@ import algorithms.lookup;
 import sorting.sortingAlgorithms;
 import algorithms.recursive;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 public class placeToRun {
 
@@ -66,6 +63,36 @@ public class placeToRun {
 //        nodes.addLast(1);
 //        System.out.println(nodes.removeLast());
 //        System.out.println(nodes.removeLast());//报错，NoSuchElementException
+
+//        List<List<Integer>> res = new LinkedList<>();
+//        LinkedList<Integer> track = new LinkedList<>();
+//        track.add(1);
+//        track.add(2);
+//        res.add(track);
+//        track.add(3);
+//        System.out.println(res);
+
+//        int[][] a = new int[3][5];
+//        System.out.println(a.length);
+//        List<List<String>> results = new LinkedList<>();
+//        char[][] board = new char[5][5];
+//        for (int i = 0; i < 5; i++) {
+//            char[] row = new char[5];
+//            Arrays.fill(row, '.');
+//            board[i] = row;
+//        }
+//
+//
+//        List<String> result = new LinkedList<>();
+//        for(int row=0; row<5; row++){
+//            String resRow = String.valueOf(board[0]);
+//            result.add(resRow);
+//        }
+//        results.add(result);
+//        System.out.println(results);
+        int a = (5/3)*3;
+        System.out.println(a);
+
 
     }
 }
