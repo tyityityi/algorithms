@@ -43,7 +43,7 @@ public class DFS {
     /**
      * [LC51. N 皇后](https://leetcode-cn.com/problems/n-queens/)
      */
-    List<List<String>> results = new LinkedList<>();
+    List<List<String>> resultsOfNQueen = new LinkedList<>();
     public List<List<String>> solveNQueens(int n) {
         // '.' 表示空，'Q' 表示皇后，初始化空棋盘。
         char[][] board = new char[n][n];
@@ -54,7 +54,7 @@ public class DFS {
         }
         //从第一行开始自上而下进行选择
         dfsSolveNQueens(board, 0);
-        return results;
+        return resultsOfNQueen;
     }
 
     // 路径：board 中小于 row 的那些行都已经成功放置了皇后
@@ -70,7 +70,7 @@ public class DFS {
                 String resRow = String.valueOf(board[i]);
                 result.add(resRow);
             }
-            results.add(result);
+            resultsOfNQueen.add(result);
             return;
         }
 
@@ -161,9 +161,47 @@ public class DFS {
         return true;
     }
 
+    /**
+     * [LC78. 子集](https://leetcode-cn.com/problems/subsets/)
+     */
+    List<List<Integer>> resultsOfSubset = new LinkedList<>();
+    public List<List<Integer>> subsets(int[] nums) {
+        LinkedList<Integer> result = new LinkedList<>();
+        dfsBuildSubsets(nums, 0, result);
+        return resultsOfSubset;
+    }
+    public void dfsBuildSubsets(int[] nums, int startIdx, LinkedList<Integer> result){
+        resultsOfSubset.add(new LinkedList(result));
+        for(int i=startIdx; i<nums.length; i++){
+            result.addLast(nums[i]);
+            dfsBuildSubsets(nums, i+1, result);
+            result.removeLast();
+        }
+    }
 
-
-
+    /**
+     * [LC77. 组合](https://leetcode-cn.com/problems/combinations/)
+     */
+    List<List<Integer>> resultsOfCombine = new LinkedList<>();
+    public List<List<Integer>> combine(int n, int k) {
+        // if(n<=0 || k<=0)
+        //     return null;
+        LinkedList<Integer> result = new LinkedList<>();
+        dfsCombine(n, k, 1, result);
+        return resultsOfCombine;
+    }
+    public void dfsCombine(int n, int k, int startIdxOfN, LinkedList<Integer> result){
+        // 到达树的底部(结束条件)
+        if(result.size()==k){
+            resultsOfCombine.add(new LinkedList(result));
+            return;
+        }
+        for(int i=startIdxOfN; i<=n; i++){
+            result.addLast(i);
+            dfsCombine(n, k, i+1, result);
+            result.removeLast();
+        }
+    }
 
 
 

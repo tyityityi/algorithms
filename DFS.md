@@ -68,6 +68,8 @@
 
     <img src="imgs/image-20210716142708055.png" alt="image-20210716142708055" style="width:80%;" />
 
+    关键点在于用`contains` 方法排除已经选择的数字。
+
     ### <u>**Solution**</u>
 
     ```java
@@ -108,6 +110,110 @@
     对链表使用 `contains` 方法需要 O(N) 的时间复杂度
 
     必须说明的是，不管怎么优化，都符合回溯框架，而且时间复杂度都不可能低于 O(N!)，因为穷举整棵决策树是无法避免的。**这也是回溯算法的一个特点，不像动态规划存在重叠子问题可以优化，回溯算法就是纯暴力穷举，复杂度一般都很高**。
+
+- ## [LC78. 子集](https://leetcode-cn.com/problems/subsets/)
+
+    给你一个整数数组 nums ，数组中的元素 互不相同 。返回该数组所有可能的子集（幂集）。
+
+    解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
+
+     
+
+    示例 1：
+
+    输入：nums = [1,2,3]
+    输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+    示例 2：
+
+    输入：nums = [0]
+    输出：[[],[0]]
+
+    函数签名：
+
+    ```java
+    public List<List<Integer>> subsets(int[] nums);
+    ```
+
+    ### <u>**Solution**</u>
+
+    <img src="imgs/image-20210717180407833.png" alt="image-20210717180407833" style="width:50%;" />
+
+    与全排列不同，寻找子集不必到决策树**最底层**（即无结束条件）再加入结果，而是在决策树的**每一层都要加入结果**
+
+    关键点在于要用 `startIdx` 参数排除已选择的数字
+
+    ```java
+    		List<List<Integer>> results = new LinkedList<>();
+        public List<List<Integer>> subsets(int[] nums) {
+            LinkedList<Integer> result = new LinkedList<>();
+            dfsBuildSubsets(nums, 0, result);
+            return results;
+        }
+        public void dfsBuildSubsets(int[] nums, int startIdx, LinkedList<Integer> result){
+            results.add(new LinkedList(result));
+            for(int i=startIdx; i<nums.length; i++){
+                result.addLast(nums[i]);
+                dfsBuildSubsets(nums, i+1, result);
+                result.removeLast();
+            }
+        }
+    ```
+
+- ## [LC77. 组合](https://leetcode-cn.com/problems/combinations/)
+
+    给定两个整数 n 和 k，返回 1 ... n 中所有可能的 k 个数的组合。
+
+    示例:
+
+    输入: n = 4, k = 2
+    输出:
+    [
+      [2,4],
+      [3,4],
+      [2,3],
+      [1,2],
+      [1,3],
+      [1,4],
+    ]
+
+    函数签名：
+
+    ```java
+    public List<List<Integer>> combine(int n, int k);
+    ```
+
+    ### <u>**Solution**</u>
+
+    <img src="imgs/image-20210717183853438.png" alt="image-20210717183853438" style="width:67%;" />
+
+    这就是典型的回溯算法，`k` 限制了树的高度，`n` 限制了树的宽度，到达树的底部（即result.size==k）才加入results；
+
+    关键点在于要用 `startIdx` 参数排除已选择的数字。
+
+    ```java
+    		List<List<Integer>> resultsOfCombine = new LinkedList<>();
+        public List<List<Integer>> combine(int n, int k) {
+            // if(n<=0 || k<=0)
+            //     return null;
+            LinkedList<Integer> result = new LinkedList<>();
+            dfsCombine(n, k, 1, result);
+            return resultsOfCombine;
+        }
+        public void dfsCombine(int n, int k, int startIdxOfN, LinkedList<Integer> result){
+            // 到达树的底部(结束条件)
+            if(result.size()==k){
+                resultsOfCombine.add(new LinkedList(result));
+                return;
+            }
+            for(int i=startIdxOfN; i<=n; i++){
+                result.addLast(i);
+                dfsCombine(n, k, i+1, result);
+                result.removeLast();
+            }
+        }
+    ```
+
+    
 
 - ## [LC51. N 皇后](https://leetcode-cn.com/problems/n-queens/)
 
