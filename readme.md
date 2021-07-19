@@ -3,6 +3,7 @@ This repo is to record the path I walked through for studying algorighms and pre
 
 Hope that you can get all the offers you want after this Fall, 2021.
 
+------
 # Table of Contents📖
 
 With respect to [labuladong的算法小抄](https://labuladong.gitbook.io/algo/)
