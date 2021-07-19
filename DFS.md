@@ -446,3 +446,168 @@
     ```
 
     对于这种时间复杂度的计算，我们只能给出一个最坏情况，也就是 O(9^M)，其中 `M` 是棋盘中空着的格子数量。你想嘛，对每个空格子穷举 9 个数，结果就是指数级的。
+
+- ## [LC698. 划分为k个相等的子集](https://leetcode-cn.com/problems/partition-to-k-equal-sum-subsets/)
+
+    给定一个整数数组  nums 和一个正整数 k，找出是否有可能把这个数组分成 k 个非空子集，其总和都相等。
+
+    示例 1：
+
+    输入： nums = [4, 3, 2, 3, 5, 2, 1], k = 4
+    输出： True
+    说明： 有可能将其分成 4 个子集（5），（1,4），（2,3），（2,3）等于总和。
+
+    函数签名：
+
+    ```java
+    public boolean canPartitionKSubsets(int[] nums, int k);
+    ```
+
+    ### <u>**思路**</u>
+
+    **算出总数除以k得出每个子集的元素和，回溯地将每个桶装满。**
+
+    1. **视角一，如果我们切换到这** **`n`** **个数字的视角，每个数字都要选择进入到** **`k`** **个桶中的某一个**。
+
+        **复杂度**：n` 个数字，每个数字有 `k` 个桶可供选择，所以组合出的结果个数为 `k^n`，时间复杂度也就是 `**O(k^n)**
+
+    2. **视角二，如果我们切换到这** **`k`** **个桶的视角，对于每个桶，都要遍历** **`nums`** **中的** **`n`** **个数字，然后选择是否将当前遍历到的数字装进自己这个桶里**。
+
+        **复杂度**：每个桶要遍历 `n` 个数字，选择「装入」或「不装入」，组合的结果有 `2^n` 种；而我们有 `k` 个桶，所以总的时间复杂度为 **`O(k*2^n)`**。
+
+    通俗来说，我们应该尽量「少量多次」，就是说宁可多做几次选择，也不要给太大的选择空间；宁可「**二选一」选 `k` 次**，也**不**要 **「`k` 选一」选一次**。
+
+    ### <u>**Solution**</u>
+
+    视角二：对于每个桶选择nums中装入哪些数字
+
+    ```java
+    		public boolean canPartitionKSubsets(int[] nums, int k) {
+            if(k>nums.length)
+                return false;
+            
+            int sum = 0;
+            for(int x: nums)
+                sum += x;
+            if(sum%k != 0)
+                return false;
+            int bucketTargetSum = sum/k;
+    
+            boolean[] used = new boolean[nums.length];
+            
+            // k 号桶初始什么都没装，从 nums[0] 开始做选择
+            return dfsPartitionKSubsets(k, 0, bucketTargetSum, nums, 0, used);
+        }
+        public boolean dfsPartitionKSubsets(int k, int bucketSum, int bucketTargetSum, int[] nums, int numsStartIdx, boolean[] used){
+            if(k==0)
+                // 所有桶都被装满了，而且 nums 一定全部用完了, 因为 target == sum / k
+                return true;
+            if(bucketSum==bucketTargetSum)
+                // 装满了当前桶，递归穷举下一个桶的选择
+                // 让下一个桶从 nums[0] 开始选数字
+                return dfsPartitionKSubsets(k-1, 0, bucketTargetSum, nums, 0, used);
+            // 从 start 开始向后探查有效的 nums[i] 装入当前桶
+            for(int i=numsStartIdx; i<nums.length; i++){
+                // 剪枝
+                if(used[i])
+                    // nums[i] 已经被装入别的桶中
+                    continue;
+                if(bucketSum+nums[i]>bucketTargetSum)
+                    // 当前桶装不下 nums[i]
+                    continue;
+                // 做选择，将 nums[i] 装入当前桶中
+                used[i] = true;
+                bucketSum += nums[i];
+                // 递归穷举下一个数字是否装入当前桶, 前面的数字都已经判断过，所以这里的numsStartIdx=i+1而不是0
+                if(dfsPartitionKSubsets(k, bucketSum, bucketTargetSum, nums, i+1, used))
+                    return true;
+                // 撤销选择
+                bucketSum -= nums[i];
+                used[i] = false;
+            }
+            // 穷举了所有数字，都无法装满当前桶
+            return false;
+        }
+    ```
+
+- ## [LC22. 括号生成](https://leetcode-cn.com/problems/generate-parentheses/)
+
+    数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+
+     
+
+    示例 1：
+
+    输入：n = 3
+    输出：["((()))","(()())","(())()","()(())","()()()"]
+    示例 2：
+
+    输入：n = 1
+    输出：["()"]
+
+    函数签名：
+
+    ```java
+    public List<String> generateParenthesis(int n);
+    ```
+
+    ### <u>**思路**</u>
+
+    有关括号问题，你只要记住以下性质，思路就很容易想出来：
+
+    **1、一个「合法」括号组合的左括号数量一定等于右括号数量**。
+
+    **2、对于一个「合法」的括号字符串组合** **`p`**，必然对于任何 **`0 <= i < len(p)`** **都有：子串** **`p[0..i]`** **中<u>左括号的数量都大于或等于右括号的数量</u>**。
+
+    算法输入一个整数 `n`，让你计算 **`n`** **对儿括号**能组成几种合法的括号组合，可以改写成如下问题：**现在有** **`2n`** **个位置，每个位置可以放置字符** **`(`** **或者** **`)`**，组成的所有括号组合中，有多少个是合法的**？
+
+    所以思路为：
+
+    1、得到全部 `2^(2n)` 种组合；
+
+    2、根据我们刚才总结出的**合法**括号组合的性质**筛选出合法的组合**：不是简单的记录穷举位置 `i`，而是**用** **`left`** **记录还可以使用多少个左括号，用** **`right`** **记录还可以使用多少个右括号**，两者初始值都为n，且**left<right**(因为括号都是先左后右), l**eft和right都>=0**；
+
+    3、 当left和right都==0时，满足结束条件，可加入结果集
+
+    ### <u>**Solution**</u>
+
+    ```java
+    		LinkedList<String> resultsOfParenthesis = new LinkedList<>();
+        public List<String> generateParenthesis(int n) {
+            // 回溯过程中的路径
+            StringBuilder result = new StringBuilder();
+            // 可用的左括号和右括号数量初始化为 n
+            dfsGenerateParenthesis(n, n, result);
+            return resultsOfParenthesis;
+        }
+        // 可用的左括号数量为 left 个，可用的右括号数量为 rgiht 个
+        public void dfsGenerateParenthesis(int left, int right, StringBuilder result){
+            //不合法条件
+            if(left>right)// 若左括号剩下的多，说明不合法
+                return;
+            if(left<0 || right<0)// 数量小于 0 肯定是不合法的
+                return;
+            //合法条件
+            if(left==0 && right==0){// 当所有括号都恰好用完时，得到一个合法的括号组合
+                resultsOfParenthesis.add(result.toString());
+                return;
+            }
+    
+            // 尝试放一个左括号
+            result.append("(");// 选择
+            dfsGenerateParenthesis(left-1, right, result);
+            //StringBuilder的length有括号，array的没有
+            result.deleteCharAt(result.length()-1);// 撤消选择
+    
+            result.append(")");// 选择
+            dfsGenerateParenthesis(left, right-1, result);
+            //StringBuilder的length有括号，array的没有
+            result.deleteCharAt(result.length()-1);// 撤消选择
+        }
+    ```
+
+    **对于** **`backtrack`** **函数，状态有三个，分别是** **`left, right, track`**，这三个变量的所有组合个数就是 `backtrack` 函数的状态个数（调用次数）。
+
+    `left` 和 `right` 的组合好办，他俩取值就是 0~n 嘛，组合起来也就 `n^2` 种而已；这个 `track` 的长度虽然取在 0~2n，但对于每一个长度，它还有指数级的括号组合，这个是不好算的。
+
+    说了这么多，就是想让大家知道这个算法的复杂度是**指数级**，而且不好算，这里就不具体展开了，是 $\frac{4^{n}}{\sqrt{n}}$

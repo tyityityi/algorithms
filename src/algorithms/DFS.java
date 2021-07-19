@@ -203,10 +203,91 @@ public class DFS {
         }
     }
 
+    /**
+     * [LC698. 划分为k个相等的子集](https://leetcode-cn.com/problems/partition-to-k-equal-sum-subsets/)
+     */
+    public boolean canPartitionKSubsets(int[] nums, int k) {
+        if(k>nums.length)
+            return false;
 
+        int sum = 0;
+        for(int x: nums)
+            sum += x;
+        if(sum%k != 0)
+            return false;
+        int bucketTargetSum = sum/k;
 
+        boolean[] used = new boolean[nums.length];
 
+        // k 号桶初始什么都没装，从 nums[0] 开始做选择
+        return dfsPartitionKSubsets(k, 0, bucketTargetSum, nums, 0, used);
+    }
+    public boolean dfsPartitionKSubsets(int k, int bucketSum, int bucketTargetSum, int[] nums, int numsStartIdx, boolean[] used){
+        if(k==0)
+            // 所有桶都被装满了，而且 nums 一定全部用完了, 因为 target == sum / k
+            return true;
+        if(bucketSum==bucketTargetSum)
+            // 装满了当前桶，递归穷举下一个桶的选择
+            // 让下一个桶从 nums[0] 开始选数字
+            return dfsPartitionKSubsets(k-1, 0, bucketTargetSum, nums, 0, used);
+        // 从 start 开始向后探查有效的 nums[i] 装入当前桶
+        for(int i=numsStartIdx; i<nums.length; i++){
+            // 剪枝
+            if(used[i])
+                // nums[i] 已经被装入别的桶中
+                continue;
+            if(bucketSum+nums[i]>bucketTargetSum)
+                // 当前桶装不下 nums[i]
+                continue;
+            // 做选择，将 nums[i] 装入当前桶中
+            used[i] = true;
+            bucketSum += nums[i];
+            // 递归穷举下一个数字是否装入当前桶, 前面的数字都已经判断过，所以这里的numsStartIdx=i+1而不是0
+            if(dfsPartitionKSubsets(k, bucketSum, bucketTargetSum, nums, i+1, used))
+                return true;
+            // 撤销选择
+            bucketSum -= nums[i];
+            used[i] = false;
+        }
+        // 穷举了所有数字，都无法装满当前桶
+        return false;
+    }
 
+    /**
+     * [LC22. 括号生成](https://leetcode-cn.com/problems/generate-parentheses/)
+     */
+    LinkedList<String> resultsOfParenthesis = new LinkedList<>();
+    public List<String> generateParenthesis(int n) {
+        // 回溯过程中的路径
+        StringBuilder result = new StringBuilder();
+        // 可用的左括号和右括号数量初始化为 n
+        dfsGenerateParenthesis(n, n, result);
+        return resultsOfParenthesis;
+    }
+    // 可用的左括号数量为 left 个，可用的右括号数量为 rgiht 个
+    public void dfsGenerateParenthesis(int left, int right, StringBuilder result){
+        //不合法条件
+        if(left>right)// 若左括号剩下的多，说明不合法
+            return;
+        if(left<0 || right<0)// 数量小于 0 肯定是不合法的
+            return;
+        //合法条件
+        if(left==0 && right==0){// 当所有括号都恰好用完时，得到一个合法的括号组合
+            resultsOfParenthesis.add(result.toString());
+            return;
+        }
+
+        // 尝试放一个左括号
+        result.append("(");// 选择
+        dfsGenerateParenthesis(left-1, right, result);
+        //StringBuilder的length有括号，array的没有
+        result.deleteCharAt(result.length()-1);// 撤消选择
+
+        result.append(")");// 选择
+        dfsGenerateParenthesis(left, right-1, result);
+        //StringBuilder的length有括号，array的没有
+        result.deleteCharAt(result.length()-1);// 撤消选择
+    }
 
 
 
