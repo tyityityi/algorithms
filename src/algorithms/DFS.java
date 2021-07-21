@@ -182,15 +182,15 @@ public class DFS {
     /**
      * [LC77. 组合](https://leetcode-cn.com/problems/combinations/)
      */
-    List<List<Integer>> resultsOfCombine = new LinkedList<>();
-    public List<List<Integer>> combine(int n, int k) {
+    public static List<List<Integer>> resultsOfCombine = new LinkedList<>();
+    public static List<List<Integer>> combine(int n, int k) {
         // if(n<=0 || k<=0)
         //     return null;
         LinkedList<Integer> result = new LinkedList<>();
         dfsCombine(n, k, 1, result);
         return resultsOfCombine;
     }
-    public void dfsCombine(int n, int k, int startIdxOfN, LinkedList<Integer> result){
+    public static void dfsCombine(int n, int k, int startIdxOfN, LinkedList<Integer> result){
         // 到达树的底部(结束条件)
         if(result.size()==k){
             resultsOfCombine.add(new LinkedList(result));
