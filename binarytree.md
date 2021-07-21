@@ -1,430 +1,431 @@
 # Binary Tree 二叉树
 
+[toc]
+
 ------
 
-- ## 基础二叉树算法
+## 基础二叉树算法
 
-    #### 普通二叉树的节点总数 O(N)
+#### 普通二叉树的节点总数 O(N)
 
-    ```java
-    public static int count(TreeNode root){
-    		if (root == null) 
-          	return 0;
-      	return 1 + count(root.left) + count(root.right);
+```java
+public static int count(TreeNode root){
+		if (root == null) 
+      	return 0;
+  	return 1 + count(root.left) + count(root.right);
+}
+```
+
+#### 满二叉树的节点总数O(logN)
+
+<img src="imgs/image-20210715140312099.png" alt="image-20210715140312099" style="width:40%;" />
+
+```java
+public int countNodes(TreeNode root) {
+  	if(root==null){
+      return 0;
     }
-    ```
-
-    #### 满二叉树的节点总数O(logN)
-
-    <img src="imgs/image-20210715140312099.png" alt="image-20210715140312099" style="width:40%;" />
-
-    ```java
-    public int countNodes(TreeNode root) {
-      	if(root==null){
-          return 0;
-        }
-        int h = 1;
-        // 计算树的高度
-        while (root.left != null) {
-            root = root.left;
-            h++;
-        }
-        // 节点总数就是 2^h - 1
-        return (int)Math.pow(2, h) - 1;
+    int h = 1;
+    // 计算树的高度
+    while (root.left != null) {
+        root = root.left;
+        h++;
     }
-    ```
+    // 节点总数就是 2^h - 1
+    return (int)Math.pow(2, h) - 1;
+}
+```
 
-- ## [LC222. 完全二叉树的节点个数](https://leetcode-cn.com/problems/count-complete-tree-nodes/) O(logN*logN)
+## [LC222. 完全二叉树的节点个数](https://leetcode-cn.com/problems/count-complete-tree-nodes/) O(logN*logN)
 
-    完全二叉树 的定义如下：在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 1~ 2h 个节点。
+完全二叉树 的定义如下：在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 1~ 2h 个节点。
 
-    示例 1：
+示例 1：
 
-    <img src="https://assets.leetcode.com/uploads/2021/01/14/complete.jpg" alt="img" style="width:40%;" />
+<img src="https://assets.leetcode.com/uploads/2021/01/14/complete.jpg" alt="img" style="width:40%;" />
 
 
-    输入：root = [1,2,3,4,5,6]
-    输出：6
-    示例 2：
+输入：root = [1,2,3,4,5,6]
+输出：6
+示例 2：
 
-    输入：root = []
-    输出：0
-    示例 3：
+输入：root = []
+输出：0
+示例 3：
 
-    输入：root = [1]
-    输出：1
+输入：root = [1]
+输出：1
 
-    函数签名：
+函数签名：
 
-    ```java
-    public int countNodes(TreeNode root)
-    ```
+```java
+public int countNodes(TreeNode root)
+```
 
-    ### <u>**思路**</u>
+### <u>**思路**</u>
 
-    <img src="imgs/image-20210715143419248.png" alt="image-20210715143419248" style="width:50%;" />
+<img src="imgs/image-20210715143419248.png" alt="image-20210715143419248" style="width:50%;" />
 
-    结合**满二叉树**和**普通二叉树**的节点数计算方法，递归的：
+结合**满二叉树**和**普通二叉树**的节点数计算方法，递归的：
 
-    1、root的左右子树中一定会有一棵满二叉树，先用满二叉树的方法计算
+1、root的左右子树中一定会有一棵满二叉树，先用满二叉树的方法计算
 
-    2、后用普通二叉树的方法计算完全二叉树（下一个递归中root的左右子树也一定会有一颗满二叉树）
+2、后用普通二叉树的方法计算完全二叉树（下一个递归中root的左右子树也一定会有一颗满二叉树）
 
-    ### <u>**Solution**</u>
+### <u>**Solution**</u>
 
-    ```java
-    		public int countNodes(TreeNode root) {
-            if(root==null)
-                return 0;
-    
-            //root的左右子树一定会有一棵满二叉树
-            //满二叉树的节点计算方法
-            TreeNode l = root;
-            TreeNode r = root;
-            int hl = 1;
-            int hr = 1;
-            while(l.left!=null){
-                l = l.left;
-                hl += 1;
-            }
-            while(r.right!=null){
-                r = r.right;
-                hr += 1;
-            }
-            if(hl==hr){
-                //满二叉树的节点总数就是 2^h - 1
-                //Math.pow返回double类型
-                return (int)Math.pow(2, hl) - 1;
-            }
-    
-            //普通二叉树的节点计算方法
-            //这两个递归只有一个会真的递归下去，另一个一定会触发 hl == hr (因为是满二叉树)而立即返回，不会递归下去。
-            return 1 + countNodes(root.left) + countNodes(root.right);
+```java
+		public int countNodes(TreeNode root) {
+        if(root==null)
+            return 0;
+
+        //root的左右子树一定会有一棵满二叉树
+        //满二叉树的节点计算方法
+        TreeNode l = root;
+        TreeNode r = root;
+        int hl = 1;
+        int hr = 1;
+        while(l.left!=null){
+            l = l.left;
+            hl += 1;
         }
-    ```
+        while(r.right!=null){
+            r = r.right;
+            hr += 1;
+        }
+        if(hl==hr){
+            //满二叉树的节点总数就是 2^h - 1
+            //Math.pow返回double类型
+            return (int)Math.pow(2, hl) - 1;
+        }
 
-    由于完全二叉树的性质，其子树一定有一棵是满的，所以一定会触发 `hl == hr`，只消耗 O(logN) 的复杂度而不会继续递归。
-
-    综上，算法的递归深度就是树的高度 O(logN)，每次递归所花费的时间就是 while 循环，需要 O(logN)，所以总体的时间复杂度是 O(logN*logN)。
-
-- ## 二叉树的遍历
-
-    ```java
-    public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
-        // write code here
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        Traverse using one of the three below;
-      	//preTra(root, result);
-      	//inTra(root, result);
-      	//postTra(root, result);
-        return result;
+        //普通二叉树的节点计算方法
+        //这两个递归只有一个会真的递归下去，另一个一定会触发 hl == hr (因为是满二叉树)而立即返回，不会递归下去。
+        return 1 + countNodes(root.left) + countNodes(root.right);
     }
-    ```
+```
 
-    1. ##### 前序遍历 preorder traverse(顺序：1root 2left 3right)
+由于完全二叉树的性质，其子树一定有一棵是满的，所以一定会触发 `hl == hr`，只消耗 O(logN) 的复杂度而不会继续递归。
 
-        前序遍历可以实现**二叉树的序列化与反序列化**（LC297）
+综上，算法的递归深度就是树的高度 O(logN)，每次递归所花费的时间就是 while 循环，需要 O(logN)，所以总体的时间复杂度是 O(logN*logN)。
 
-        <img src="imgs/image-20210708153415301.png" alt="image-20210708153415301" style="width:67%;" />
+## 二叉树的遍历
 
-        ```java
-        public void preTra (TreeNode node, ArrayList<Integer> res){
-            if(node==null)
-                return;
-            res.add(node.val);
-            preTra(node.left,res);
-            preTra(node.right,res);
-        }
-        ```
+```java
+public ArrayList<Integer> preorderTraversalByRecursive (TreeNode root) {
+    // write code here
+    ArrayList<Integer> result = new ArrayList<Integer>();
+    Traverse using one of the three below;
+  	//preTra(root, result);
+  	//inTra(root, result);
+  	//postTra(root, result);
+    return result;
+}
+```
 
-        ##### 
+### 前序遍历 preorder traverse(顺序：1root 2left 3right)
 
-    2. ##### 中序遍历 inorder traverse (顺序：1left 2root 3right)
+前序遍历可以实现**二叉树的序列化与反序列化**（LC297）
 
-        ```java
-        public void inTra(TreeNode node, ArrayList<Integer> res){
-            if(node==null)
-                return;
-            inTra(node.left, res);
-            res.add(node.val);
-            inTra(node.right, res);
-        }
-        ```
+<img src="imgs/image-20210708153415301.png" alt="image-20210708153415301" style="width:67%;" />
 
-        
+```java
+public void preTra (TreeNode node, ArrayList<Integer> res){
+    if(node==null)
+        return;
+    res.add(node.val);
+    preTra(node.left,res);
+    preTra(node.right,res);
+}
+```
 
-    3. ##### 后序遍历 postorder traverse (顺序：1left 2right 3root)
+##### 
 
-        **如果当前节点要做的事情需要通过左右子树的计算结果推导出来，就要用到后序遍历**。
+### 中序遍历 inorder traverse (顺序：1left 2root 3right)
 
-        <img src="imgs/image-20210708153509414.png" alt="image-20210708153509414" style="width:67%;" />
+```java
+public void inTra(TreeNode node, ArrayList<Integer> res){
+    if(node==null)
+        return;
+    inTra(node.left, res);
+    res.add(node.val);
+    inTra(node.right, res);
+}
+```
 
-        ```java
-        public void postTra(TreeNode node, ArrayList<Integer> res){
-            if(node==null)
-                return;
-            postTra(node.left, res);
-            postTra(node.right, res);
-          	res.add(node.val);
-        }
-        ```
 
-- ## [LC297. 二叉树的序列化与反序列化](https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/)
 
-    序列化是将一个数据结构或者对象转换为连续的比特位的操作，进而可以将转换后的数据存储在一个文件或者内存中，同时也可以通过网络传输到另一个计算机环境，采取相反方式重构得到原数据。
+### 后序遍历 postorder traverse (顺序：1left 2right 3root)
 
-    请设计一个算法来实现二叉树的序列化与反序列化。这里不限定你的序列 / 反序列化算法执行逻辑，你只需要保证一个二叉树可以被序列化为一个字符串并且将这个字符串反序列化为原始的树结构。
+**如果当前节点要做的事情需要通过左右子树的计算结果推导出来，就要用到后序遍历**。
 
-    函数签名：
+<img src="imgs/image-20210708153509414.png" alt="image-20210708153509414" style="width:67%;" />
 
-    ```java
-    		// 把一棵二叉树序列化成字符串
-        public String serialize(TreeNode root) {}
-    
-        // 把字符串反序列化成二叉树
-        public TreeNode deserialize(String data) {}
-    ```
+```java
+public void postTra(TreeNode node, ArrayList<Integer> res){
+    if(node==null)
+        return;
+    postTra(node.left, res);
+    postTra(node.right, res);
+  	res.add(node.val);
+}
+```
 
-    
+## [LC297. 二叉树的序列化与反序列化](https://leetcode-cn.com/problems/serialize-and-deserialize-binary-tree/)
 
-    ### <u>**思路**</u>
+序列化是将一个数据结构或者对象转换为连续的比特位的操作，进而可以将转换后的数据存储在一个文件或者内存中，同时也可以通过网络传输到另一个计算机环境，采取相反方式重构得到原数据。
 
-    通过前序遍历与后序遍历实现，必须记录空指针信息
+请设计一个算法来实现二叉树的序列化与反序列化。这里不限定你的序列 / 反序列化算法执行逻辑，你只需要保证一个二叉树可以被序列化为一个字符串并且将这个字符串反序列化为原始的树结构。
 
-    详情：
+函数签名：
 
-    https://labuladong.gitbook.io/algo/mu-lu-ye-1/mu-lu-ye-1/er-cha-shu-de-xu-lie-hua
+```java
+		// 把一棵二叉树序列化成字符串
+    public String serialize(TreeNode root) {}
 
-    我的做法是通过后序遍历实现：
+    // 把字符串反序列化成二叉树
+    public TreeNode deserialize(String data) {}
+```
 
-    <img src="imgs/image-20210715135738327.png" alt="image-20210715135738327" style="width:50%;" />
 
-    ### <u>**Solution**</u>
 
-    ```java
-    		//后序遍历实现
-    
-        // Encodes a tree to a single string.
-        StringBuilder sb = new StringBuilder();
-        public String serialize(TreeNode root) {
-            serializeTraverse(root);
-            return sb.toString();
-        }
-        public void serializeTraverse(TreeNode root){
-            if(root==null){
-                sb.append("#").append(",");
-                return;
-            }
-            //后序遍历
-            serializeTraverse(root.left);
-            serializeTraverse(root.right);
-            sb.append(root.val).append(",");
+### <u>**思路**</u>
+
+通过前序遍历与后序遍历实现，必须记录空指针信息
+
+详情：
+
+https://labuladong.gitbook.io/algo/mu-lu-ye-1/mu-lu-ye-1/er-cha-shu-de-xu-lie-hua
+
+我的做法是通过后序遍历实现：
+
+<img src="imgs/image-20210715135738327.png" alt="image-20210715135738327" style="width:50%;" />
+
+### <u>**Solution**</u>
+
+```java
+		//后序遍历实现
+
+    // Encodes a tree to a single string.
+    StringBuilder sb = new StringBuilder();
+    public String serialize(TreeNode root) {
+        serializeTraverse(root);
+        return sb.toString();
+    }
+    public void serializeTraverse(TreeNode root){
+        if(root==null){
+            sb.append("#").append(",");
             return;
         }
-    
-        // Decodes your encoded data to tree.
-        public TreeNode deserialize(String data) {
-            //这里也可用ArrayList，因为两种List在列表末尾增加一个元素所花的开销都是固定的
-            //用LinkedList是因为它有removeLast()方法，ArrayList则需要remove(nodes.size())
-            LinkedList<Integer> nodes = new LinkedList<>();
-            for(String val: data.split(",")){
-                if(val.equals("#")){
-                    //Null的情况
-                    nodes.addLast(Integer.MIN_VALUE);
-                } else{
-                    nodes.addLast(Integer.parseInt(val));
-                }  
-            }
-            return deserializeBuild(nodes);
-        }
-        public TreeNode deserializeBuild(LinkedList<Integer> nodes){
-            if(nodes.isEmpty())
-                return null;
-            // 列表最右侧是根节点
-            Integer val = nodes.removeLast();
-            if(val==Integer.MIN_VALUE)
-                return null;
-            TreeNode root = new TreeNode(val);
-          	//这里是先right再left，因为后序遍历是从后往前的顺序
-            root.right = deserializeBuild(nodes);
-            root.left = deserializeBuild(nodes);
-            return root;
-        }
-    ```
-
-    
-
-- ## [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
-
-    ```wiki
-    给定二叉树 [3,9,20,null,null,15,7]，
-    		3
-       / \
-      9  20
-        /  \
-       15   7
-    返回它的最大深度 3 
-    ```
-
-    ### <u>**Solution**</u>:
-
-    ```java
-    public static int maxDepth(TreeNode root){
-      	if (root == null) 
-          	return 0;
-      	return Math.max(maxDepth(root.left), maxDepth(root.right)) + 1;
+        //后序遍历
+        serializeTraverse(root.left);
+        serializeTraverse(root.right);
+        sb.append(root.val).append(",");
+        return;
     }
-    ```
 
-- ##  [LC226.翻转二叉树](https://leetcode-cn.com/problems/invert-binary-tree/)
-
-    ```wiki
-    翻转一棵二叉树。
-    
-    示例：
-    
-    输入：
-         4
-       /   \
-      2     7
-     / \   / \
-    1   3 6   9
-    输出：
-         4
-       /   \
-      7     2
-     / \   / \
-    9   6 3   1
-    
-    ```
-
-    ### <u>**Solution:**</u>
-
-    ```java
-    public static TreeNode invertTree(TreeNode root) {
-        if (root == null) 
-          	return null;
-      
-    		//交换左右子节点
-        TreeNode tmp = root.left;
-        root.left = root.right;
-        root.right = tmp;
-    		//让左右子节点继续翻转他们的子节点
-        invertTree(root.left);
-        invertTree(root.right);
-    
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        //这里也可用ArrayList，因为两种List在列表末尾增加一个元素所花的开销都是固定的
+        //用LinkedList是因为它有removeLast()方法，ArrayList则需要remove(nodes.size())
+        LinkedList<Integer> nodes = new LinkedList<>();
+        for(String val: data.split(",")){
+            if(val.equals("#")){
+                //Null的情况
+                nodes.addLast(Integer.MIN_VALUE);
+            } else{
+                nodes.addLast(Integer.parseInt(val));
+            }  
+        }
+        return deserializeBuild(nodes);
+    }
+    public TreeNode deserializeBuild(LinkedList<Integer> nodes){
+        if(nodes.isEmpty())
+            return null;
+        // 列表最右侧是根节点
+        Integer val = nodes.removeLast();
+        if(val==Integer.MIN_VALUE)
+            return null;
+        TreeNode root = new TreeNode(val);
+      	//这里是先right再left，因为后序遍历是从后往前的顺序
+        root.right = deserializeBuild(nodes);
+        root.left = deserializeBuild(nodes);
         return root;
-        }
-    ```
-
-- ## [LC116.填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
-
-    给定一个 完美二叉树 ，其所有叶子节点都在同一层，每个父节点都有两个子节点。二叉树定义如下：
-
-    ```java
-    class Node {
-        int val;
-        Node *left;
-        Node *right;
-        Node *next;
     }
-    ```
+```
 
-    填充它的每个 next 指针，让这个指针指向其下一个右侧节点。如果找不到下一个右侧节点，则将 next 指针设置为 NULL。
 
-    初始状态下，所有 next 指针都被设置为 NULL。
 
-    进阶：
+## [LC104.二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)
 
-    你只能使用常量级额外空间。
-    使用递归解题也符合要求，本题中递归程序占用的栈空间不算做额外的空间复杂度。
+```wiki
+给定二叉树 [3,9,20,null,null,15,7]，
+		3
+   / \
+  9  20
+    /  \
+   15   7
+返回它的最大深度 3 
+```
 
-    示例：<img src="./imgs/116_sample.png" alt="img" style="width: 75%;" />
+### <u>**Solution**</u>:
 
-    输入：root = [1,2,3,4,5,6,7]
-    输出：[1,#,2,3,#,4,5,6,7,#]
-    解释：给定二叉树如图 A 所示，你的函数应该填充它的每个 next 指针，以指向其下一个右侧节点，如图 B 所示。序列化的输出按层序遍历排列，同一层节点由 next 指针连接，'#' 标志着每一层的结束。
+```java
+public static int maxDepth(TreeNode root){
+  	if (root == null) 
+      	return 0;
+  	return Math.max(maxDepth(root.left), maxDepth(root.right)) + 1;
+}
+```
 
-    ### <u>**Solution**</u>:
+##  [LC226.翻转二叉树](https://leetcode-cn.com/problems/invert-binary-tree/)
 
-    ```java
-    public static Node connect(Node root) {
-        if (root == null) 
-          	return null;
-        connectTwoNodes(root.left, root.right);
-        return root;
-        }
-    public static void connectTwoNodes(Node leftNode, Node rightNode) {
-        if (leftNode == null || rightNode == null) 
-          	return;
-    		//连接两个传入节点
-        leftNode.next = rightNode;
-    		//连接 两个传入节点 的 两个子节点
-        connectTwoNodes(leftNode.left, leftNode.right);
-        connectTwoNodes(rightNode.left, rightNode.right);
-    		//连接跨越副节点的两个子节点
-        connectTwoNodes(leftNode.right, rightNode.left);
+```wiki
+翻转一棵二叉树。
+
+示例：
+
+输入：
+     4
+   /   \
+  2     7
+ / \   / \
+1   3 6   9
+输出：
+     4
+   /   \
+  7     2
+ / \   / \
+9   6 3   1
+
+```
+
+### <u>**Solution:**</u>
+
+```java
+public static TreeNode invertTree(TreeNode root) {
+    if (root == null) 
+      	return null;
+  
+		//交换左右子节点
+    TreeNode tmp = root.left;
+    root.left = root.right;
+    root.right = tmp;
+		//让左右子节点继续翻转他们的子节点
+    invertTree(root.left);
+    invertTree(root.right);
+
+    return root;
     }
-    ```
+```
 
-- ## [LC114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
+## [LC116.填充每个节点的下一个右侧节点指针](https://leetcode-cn.com/problems/populating-next-right-pointers-in-each-node/)
 
-    给你二叉树的根结点 root ，请你将它展开为一个单链表：
+给定一个 完美二叉树 ，其所有叶子节点都在同一层，每个父节点都有两个子节点。二叉树定义如下：
 
-    展开后的单链表应该同样使用 TreeNode ，其中 right 子指针指向链表中下一个结点，而左子指针始终为 null 。
-    展开后的单链表应该与二叉树 先序遍历 顺序相同。
-    
-    示例 1：<img src="https://assets.leetcode.com/uploads/2021/01/14/flaten.jpg" alt="img" style="width: 67%;" />
-    
-    输入：root = [1,2,5,3,4,null,6]
-    输出：[1,null,2,null,3,null,4,null,5,null,6]
-    
-    示例 2：
-    
-    输入：root = []
-    输出：[]
-    
-    示例 3：
-    
-    输入：root = [0]
-    输出：[0]
-    
-    ### <u>**思路**</u>
-    
-    1、将 `root` 的左子树和右子树拉平
-    
-    2、将 `root` 的右子树接到左子树下方
-    
-    3、然后将整个左子树作为右子树
-    
-    <img src="./imgs/image-20210707180317323.png" alt="image-20210707180317323" style="width:50%;" />
-    
-    ### <u>**Solution**</u>
-    
-    
-    
-    ```java
-    public static void flatten(TreeNode root) {
-        if (root == null) 
-          	return;
-        flatten(root.left);
-        flatten(root.right);
-    
-        //记录原始的右子节点
-        TreeNode originRight = root.right;
-    
-        //将左子树作为右子数，左子数置为空
-        root.right = root.left;
-        root.left = null;
-    
-        //将原先的右子树接到当前右子树末端
-        while (root.right != null){
-            root = root.right;
-        }
-        root.right = originRight;
+```java
+class Node {
+    int val;
+    Node *left;
+    Node *right;
+    Node *next;
+}
+```
+
+填充它的每个 next 指针，让这个指针指向其下一个右侧节点。如果找不到下一个右侧节点，则将 next 指针设置为 NULL。
+
+初始状态下，所有 next 指针都被设置为 NULL。
+
+进阶：
+
+你只能使用常量级额外空间。
+使用递归解题也符合要求，本题中递归程序占用的栈空间不算做额外的空间复杂度。
+
+示例：<img src="./imgs/116_sample.png" alt="img" style="width: 75%;" />
+
+输入：root = [1,2,3,4,5,6,7]
+输出：[1,#,2,3,#,4,5,6,7,#]
+解释：给定二叉树如图 A 所示，你的函数应该填充它的每个 next 指针，以指向其下一个右侧节点，如图 B 所示。序列化的输出按层序遍历排列，同一层节点由 next 指针连接，'#' 标志着每一层的结束。
+
+### <u>**Solution**</u>:
+
+```java
+public static Node connect(Node root) {
+    if (root == null) 
+      	return null;
+    connectTwoNodes(root.left, root.right);
+    return root;
     }
-    ```
+public static void connectTwoNodes(Node leftNode, Node rightNode) {
+    if (leftNode == null || rightNode == null) 
+      	return;
+		//连接两个传入节点
+    leftNode.next = rightNode;
+		//连接 两个传入节点 的 两个子节点
+    connectTwoNodes(leftNode.left, leftNode.right);
+    connectTwoNodes(rightNode.left, rightNode.right);
+		//连接跨越副节点的两个子节点
+    connectTwoNodes(leftNode.right, rightNode.left);
+}
+```
 
+## [LC114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
+
+给你二叉树的根结点 root ，请你将它展开为一个单链表：
+
+展开后的单链表应该同样使用 TreeNode ，其中 right 子指针指向链表中下一个结点，而左子指针始终为 null 。
+展开后的单链表应该与二叉树 先序遍历 顺序相同。
+
+示例 1：<img src="https://assets.leetcode.com/uploads/2021/01/14/flaten.jpg" alt="img" style="width: 67%;" />
+
+输入：root = [1,2,5,3,4,null,6]
+输出：[1,null,2,null,3,null,4,null,5,null,6]
+
+示例 2：
+
+输入：root = []
+输出：[]
+
+示例 3：
+
+输入：root = [0]
+输出：[0]
+
+### <u>**思路**</u>
+
+1、将 `root` 的左子树和右子树拉平
+
+2、将 `root` 的右子树接到左子树下方
+
+3、然后将整个左子树作为右子树
+
+<img src="./imgs/image-20210707180317323.png" alt="image-20210707180317323" style="width:50%;" />
+
+### <u>**Solution**</u>
+
+
+
+```java
+public static void flatten(TreeNode root) {
+    if (root == null) 
+      	return;
+    flatten(root.left);
+    flatten(root.right);
+
+    //记录原始的右子节点
+    TreeNode originRight = root.right;
+
+    //将左子树作为右子数，左子数置为空
+    root.right = root.left;
+    root.left = null;
+
+    //将原先的右子树接到当前右子树末端
+    while (root.right != null){
+        root = root.right;
+    }
+    root.right = originRight;
+}
+```
 - ## [LC654. 最大二叉树](https://leetcode-cn.com/problems/maximum-binary-tree/)
 
     给定一个不含重复元素的整数数组 nums 。一个以此数组直接递归构建的 最大二叉树 定义如下：
@@ -503,310 +504,315 @@
 
     
 
-- ## [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+## [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
 
-    根据一棵树的前序遍历与中序遍历构造二叉树。
+根据一棵树的前序遍历与中序遍历构造二叉树。
 
-    注意:
-    你可以假设树中没有重复的元素。
+注意:
+你可以假设树中没有重复的元素。
 
-    例如，给出
+例如，给出
 
-    前序遍历 preorder = [3,9,20,15,7]
-    中序遍历 inorder = [9,3,15,20,7]
-    返回如下的二叉树：
+前序遍历 preorder = [3,9,20,15,7]
+中序遍历 inorder = [9,3,15,20,7]
+返回如下的二叉树：
 
-    ```wiki
-     3
-    / \
-    9  20
-    	/  \
-     15   7
-    ```
+```wiki
+ 3
+/ \
+9  20
+	/  \
+ 15   7
+```
 
-    函数签名：
+函数签名：
 
-    ```JAVA
-    TreeNode buildTree(int[] inorder, int[] postorder)
-    ```
+```JAVA
+TreeNode buildTree(int[] inorder, int[] postorder)
+```
 
-    ### <u>**思路**</u>：递归construct root
+### <u>**思路**</u>：递归construct root
 
-    root值为preorder[0] = **inorder[rootValIdx]** (遍历inorder[]可找到root的值在inorder[]中的位置)
+root值为preorder[0] = **inorder[rootValIdx]** (遍历inorder[]可找到root的值在inorder[]中的位置)
 
-    root.left的元素总数：leftSize = rootValInIdx-inStart
+root.left的元素总数：leftSize = rootValInIdx-inStart
 
-    root.left 在preorder中的位置为preorder[preStart+1, preStart+1+leftSize-1]
+root.left 在preorder中的位置为preorder[preStart+1, preStart+1+leftSize-1]
 
-    root.left 在inorder中的位置为inorder[inStart, rootValInIdx-1]
+root.left 在inorder中的位置为inorder[inStart, rootValInIdx-1]
 
-    root.right 在preorder中的位置为preorder[preStart+1+leftSize, preEnd ]
+root.right 在preorder中的位置为preorder[preStart+1+leftSize, preEnd ]
 
-    root.right 在inorder中的位置为inorder[rootValInIdx+1, inEnd]
+root.right 在inorder中的位置为inorder[rootValInIdx+1, inEnd]
 
-    <img src="imgs/image-20210708160117476.png" alt="image-20210708160117476" style="width:67%;" />
+<img src="imgs/image-20210708160117476.png" alt="image-20210708160117476" style="width:67%;" />
 
-    ### <u>**Solution**</u>
+### <u>**Solution**</u>
 
-    ```Java
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-            return build(preorder, 0, preorder.length-1,
-                        inorder, 0, inorder.length-1);
-    }
-    
-    public TreeNode build(int[] preorder, int preStart, int preEnd,
-                          int[] inorder, int inStart, int inEnd){
-        if (!(preStart <= preEnd))
-          return null;
-    
-        //遍历inorder[] 找root的值在inorder中的位置
-        int rootVal = preorder[preStart];
-        int rootValInIdx = -1;
-        for (int i=inStart; i<=inEnd; i++){
-            if (inorder[i]==rootVal){
-              rootValInIdx = i;
-              break;
-            }
+```Java
+public TreeNode buildTree(int[] preorder, int[] inorder) {
+        return build(preorder, 0, preorder.length-1,
+                    inorder, 0, inorder.length-1);
+}
+
+public TreeNode build(int[] preorder, int preStart, int preEnd,
+                      int[] inorder, int inStart, int inEnd){
+    if (!(preStart <= preEnd))
+      return null;
+
+    //遍历inorder[] 找root的值在inorder中的位置
+    int rootVal = preorder[preStart];
+    int rootValInIdx = -1;
+    for (int i=inStart; i<=inEnd; i++){
+        if (inorder[i]==rootVal){
+          rootValInIdx = i;
+          break;
         }
-    
-      //root.left的元素总数
-      int leftSize = rootValInIdx - inStart;
-    
-      //构造左右子树
-      TreeNode root = new TreeNode(rootVal);
-      root.left = build(preorder, preStart+1, preStart+1+(leftSize-1),
-                        inorder, inStart, rootValInIdx - 1);
-      root.right = build(preorder, preStart+1+leftSize, preEnd,
-                         inorder, rootValInIdx+1, inEnd);
-    
-      return root; 
     }
-    ```
 
-    
+  //root.left的元素总数
+  int leftSize = rootValInIdx - inStart;
 
-- ## [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+  //构造左右子树
+  TreeNode root = new TreeNode(rootVal);
+  root.left = build(preorder, preStart+1, preStart+1+(leftSize-1),
+                    inorder, inStart, rootValInIdx - 1);
+  root.right = build(preorder, preStart+1+leftSize, preEnd,
+                     inorder, rootValInIdx+1, inEnd);
 
-    根据一棵树的中序遍历与后序遍历构造二叉树。
+  return root; 
+}
+```
 
-    注意:
-    你可以假设树中没有重复的元素。
 
-    例如，给出
 
-    中序遍历 inorder = [9,3,15,20,7]
-    后序遍历 postorder = [9,15,7,20,3]
+## [LC106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
 
-    返回如下的二叉树：
+根据一棵树的中序遍历与后序遍历构造二叉树。
 
-    ```wiki
-     3
-    / \
-    9  20
-    	/  \
-     15   7
-    ```
+注意:
+你可以假设树中没有重复的元素。
 
-    函数签名：
+例如，给出
 
-    ```JAVA
-    TreeNode buildTree(int[] inorder, int[] postorder)
-    ```
+中序遍历 inorder = [9,3,15,20,7]
+后序遍历 postorder = [9,15,7,20,3]
 
-    
+返回如下的二叉树：
 
-    ### <u>**思路**</u>
+```wiki
+ 3
+/ \
+9  20
+	/  \
+ 15   7
+```
 
-    <img src="imgs/image-20210708164944396.png" alt="image-20210708164944396" style="width:67%;" />
+函数签名：
 
-    ### <u>**Solution**</u>
+```JAVA
+TreeNode buildTree(int[] inorder, int[] postorder)
+```
 
-    ```Java
-    public TreeNode buildTree(int[] inorder, int[] postorder) {
-      	return build(postorder, 0, postorder.length-1,
-                        inorder, 0, inorder.length-1);
-    }
-    public TreeNode build(int[] postorder, int postStart, int postEnd,
-                          int[] inorder, int inStart, int inEnd){
-        if (!(postStart <= postEnd))
-          return null;
-    
-        int rootVal = postorder[postEnd];
-        int rootValInIdx = -1;
-        for (int i=inStart; i<=inEnd; i++){
-            if (inorder[i]==rootVal){
-              rootValInIdx = i;
-              break;
-            }
+
+
+### <u>**思路**</u>
+
+<img src="imgs/image-20210708164944396.png" alt="image-20210708164944396" style="width:67%;" />
+
+### <u>**Solution**</u>
+
+```Java
+public TreeNode buildTree(int[] inorder, int[] postorder) {
+  	return build(postorder, 0, postorder.length-1,
+                    inorder, 0, inorder.length-1);
+}
+public TreeNode build(int[] postorder, int postStart, int postEnd,
+                      int[] inorder, int inStart, int inEnd){
+    if (!(postStart <= postEnd))
+      return null;
+
+    int rootVal = postorder[postEnd];
+    int rootValInIdx = -1;
+    for (int i=inStart; i<=inEnd; i++){
+        if (inorder[i]==rootVal){
+          rootValInIdx = i;
+          break;
         }
-    
-        int leftSize = rootValInIdx - inStart;
-    
-        TreeNode root = new TreeNode(rootVal);
-        root.left = build(postorder, postStart, postStart+leftSize-1,
-                          inorder, inStart, rootValInIdx-1);
-        root.right = build(postorder, postStart+leftSize, postEnd-1,
-                           inorder, rootValInIdx+1, inEnd);
-        return root;
     }
-    ```
 
-- ## [LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
+    int leftSize = rootValInIdx - inStart;
 
-    给定一棵二叉树，返回所有重复的子树。对于同一类的重复子树，你只需要返回其中任意一棵的根结点即可。
+    TreeNode root = new TreeNode(rootVal);
+    root.left = build(postorder, postStart, postStart+leftSize-1,
+                      inorder, inStart, rootValInIdx-1);
+    root.right = build(postorder, postStart+leftSize, postEnd-1,
+                       inorder, rootValInIdx+1, inEnd);
+    return root;
+}
+```
 
-    两棵树重复是指它们具有相同的结构以及相同的结点值。
+## [LC652. 寻找重复的子树](https://leetcode-cn.com/problems/find-duplicate-subtrees/)
 
-    示例 1：
+给定一棵二叉树，返回所有重复的子树。对于同一类的重复子树，你只需要返回其中任意一棵的根结点即可。
 
-            1
-           / \
-          2   3
-         /   / \
-        4   2   4
-           /
-          4
-    下面是两个重复的子树：
+两棵树重复是指它们具有相同的结构以及相同的结点值。
 
-          2
-         /
-        4
-    和
+示例 1：
 
-        4
-    因此，你需要以列表的形式返回上述重复子树的根结点。
+```
+    1
+   / \
+  2   3
+ /   / \
+4   2   4
+   /
+  4
+```
+下面是两个重复的子树：
 
-    函数签名如下：
+```
+  2
+ /
+4
+```
+和
 
-    ```java
-    List<TreeNode> findDuplicateSubtrees(TreeNode root);
-    ```
+```
+4
+```
+因此，你需要以列表的形式返回上述重复子树的根结点。
 
-    ### <u>**思路**</u>
+函数签名如下：
 
-    1、以我为根的这棵二叉树（子树）长啥样？
+```java
+List<TreeNode> findDuplicateSubtrees(TreeNode root);
+```
 
-    2、以其他节点为根的子树都长啥样？
+### <u>**思路**</u>
 
-    3、对比子树们，并避免 重复添加 相同的子树 到结果List
+1、以我为根的这棵二叉树（子树）长啥样？
 
-    ### <u>**Solution**</u>
+2、以其他节点为根的子树都长啥样？
 
-    ```java
-    public List<TreeNode> findDuplicateSubtrees(TreeNode root) {
-        //！！！注意list和hashmap的创建方式！
-        List<TreeNode> res = new ArrayList<>();
-        //存子树的样子及其出现频率
-        Map<String, Integer> nodesFreq = new HashMap<>();
-        postTraverse(root, res, nodesFreq);
-        return res;
+3、对比子树们，并避免 重复添加 相同的子树 到结果List
+
+### <u>**Solution**</u>
+
+```java
+public List<TreeNode> findDuplicateSubtrees(TreeNode root) {
+    //！！！注意list和hashmap的创建方式！
+    List<TreeNode> res = new ArrayList<>();
+    //存子树的样子及其出现频率
+    Map<String, Integer> nodesFreq = new HashMap<>();
+    postTraverse(root, res, nodesFreq);
+    return res;
+}
+
+public String postTraverse(TreeNode root, List<TreeNode> res, Map<String, Integer> nodesFreq){
+  	if (root == null)
+      	return "#";
+        
+    String left = postTraverse(root.left, res, nodesFreq);
+    String right = postTraverse(root.right, res, nodesFreq);
+    String subtree = root.val + "," + left + ","+ right;
+
+    //此子树未出现过
+    if (nodesFreq.get(subtree)==null){
+      	nodesFreq.put(subtree, 1);
+      	return subtree;
     }
-    
-    public String postTraverse(TreeNode root, List<TreeNode> res, Map<String, Integer> nodesFreq){
-      	if (root == null)
-          	return "#";
-            
-        String left = postTraverse(root.left, res, nodesFreq);
-        String right = postTraverse(root.right, res, nodesFreq);
-        String subtree = root.val + "," + left + ","+ right;
-    
-        //此子树未出现过
-        if (nodesFreq.get(subtree)==null){
-          	nodesFreq.put(subtree, 1);
-          	return subtree;
-        }
-      
-        Integer freq = nodesFreq.get(subtree);
-        if (freq==1){
-        		//此子树只出现过一次，添加到结果集
-        		res.add(root);
-        		//更新此子树的出现频率为2（相当于replace方法）
-        		nodesFreq.put(subtree, freq+1);
-        } else {
-        		//此子树出现超过一次，不添加到结果集
-        		nodesFreq.put(subtree, freq+1);
-        }
-      
-        return subtree;
+  
+    Integer freq = nodesFreq.get(subtree);
+    if (freq==1){
+    		//此子树只出现过一次，添加到结果集
+    		res.add(root);
+    		//更新此子树的出现频率为2（相当于replace方法）
+    		nodesFreq.put(subtree, freq+1);
+    } else {
+    		//此子树出现超过一次，不添加到结果集
+    		nodesFreq.put(subtree, freq+1);
     }
-    ```
+  
+    return subtree;
+}
+```
 
-- ## [LC236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+## [LC236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
 
-    给定一个二叉树, 找到该树中两个指定节点的最近公共祖先。
+给定一个二叉树, 找到该树中两个指定节点的最近公共祖先。
 
-    百度百科中最近公共祖先的定义为：“对于有根树 T 的两个节点 p、q，最近公共祖先表示为一个节点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）。”
+百度百科中最近公共祖先的定义为：“对于有根树 T 的两个节点 p、q，最近公共祖先表示为一个节点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）。”
 
-    
 
-    root = [3,5,1,6,2,0,8,null,null,7,4] <img src="https://assets.leetcode.com/uploads/2018/12/14/binarytree.png" alt="img" style="width:30%;" />
 
-    示例 1：
+root = [3,5,1,6,2,0,8,null,null,7,4] <img src="https://assets.leetcode.com/uploads/2018/12/14/binarytree.png" alt="img" style="width:30%;" />
 
-    输入： p = 5, q = 1
-    输出：3
-    解释：节点 5 和节点 1 的最近公共祖先是节点 3 。
-    示例 2：
+示例 1：
 
-    输入：p = 5, q = 4
-    输出：5
-    解释：节点 5 和节点 4 的最近公共祖先是节点 5 。因为根据定义最近公共祖先节点可以为节点本身。
+输入： p = 5, q = 1
+输出：3
+解释：节点 5 和节点 1 的最近公共祖先是节点 3 。
+示例 2：
 
-    函数签名：
+输入：p = 5, q = 4
+输出：5
+解释：节点 5 和节点 4 的最近公共祖先是节点 5 。因为根据定义最近公共祖先节点可以为节点本身。
 
-    ```java
-    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q);
-    ```
+函数签名：
 
-    
+```java
+public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q);
+```
 
-    ### <u>**思路**</u>
 
-    要先确定子树中是否含有p、q，再判断root是否含有p、q
 
-    很明显是自下而上的遍历过程：**`后序遍历`**
+### <u>**思路**</u>
 
-    先想 **`base case`**
+要先确定子树中是否含有p、q，再判断root是否含有p、q
 
-    ​	情况1，如果`root`为空，肯定得返回`null`；
+很明显是自下而上的遍历过程：**`后序遍历`**
 
-    ​	情况2，如果`root`本身就是`p`或者`q`：
+先想 **`base case`**
 
-    ​		 - 比如说`root`就是`p`节点吧，如果`q`存在于以`root`为根的树中，显然`root`就是最近公			共祖先；
+​	情况1，如果`root`为空，肯定得返回`null`；
 
-    ​		- 即使`q`不存在于以`root`为根的树中，也应该返回`root`节点(q)本身。
+​	情况2，如果`root`本身就是`p`或者`q`：
 
-    再想想**`返回值`**
+​		 - 比如说`root`就是`p`节点吧，如果`q`存在于以`root`为根的树中，显然`root`就是最近公			共祖先；
 
-    ​	情况 1，如果`p`和`q`都**在**以`root`为根的树中，返回**root**
+​		- 即使`q`不存在于以`root`为根的树中，也应该返回`root`节点(q)本身。
 
-    ​	情况 2，如果`p`和`q`都**不在**以`root`为根的树中，返回**null**
+再想想**`返回值`**
 
-    ​	情况 3，如果`p`和`q`只有一个存在于`root`为根的树中，函数返回该**非null**节点。
+​	情况 1，如果`p`和`q`都**在**以`root`为根的树中，返回**root**
 
-    ### <u>Solution</u>
+​	情况 2，如果`p`和`q`都**不在**以`root`为根的树中，返回**null**
 
-    ```java
-    		public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, 		TreeNode q) {
-            if(root==null)
-                return null;
-            //即使其中一点不存在于以`root`为根的树中，也应该返回`root`节点本身。
-            if(root==p || root==q)
-                return root;
-            
-            TreeNode left = lowestCommonAncestor(root.left, p, q);
-            TreeNode right = lowestCommonAncestor(root.right, p, q);
-    
-            //后序遍历位置
-            //情况 1，如果`p`和`q`都**在**以`root`为根的树中，返回**root**
-            if(left!=null && right!=null)
-                return root;
-            //情况 2，如果`p`和`q`都**不在**以`root`为根的树中，返回**null**
-            if(left==null && right==null)
-                return null;
-            //情况 3，返回不为空的那个子树
-            return left!=null? left: right;
-        }
-    ```
+​	情况 3，如果`p`和`q`只有一个存在于`root`为根的树中，函数返回该**非null**节点。
 
-    
+### <u>Solution</u>
+
+```java
+		public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, 		TreeNode q) {
+        if(root==null)
+            return null;
+        //即使其中一点不存在于以`root`为根的树中，也应该返回`root`节点本身。
+        if(root==p || root==q)
+            return root;
+        
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+        //后序遍历位置
+        //情况 1，如果`p`和`q`都**在**以`root`为根的树中，返回**root**
+        if(left!=null && right!=null)
+            return root;
+        //情况 2，如果`p`和`q`都**不在**以`root`为根的树中，返回**null**
+        if(left==null && right==null)
+            return null;
+        //情况 3，返回不为空的那个子树
+        return left!=null? left: right;
+    }
+```
+

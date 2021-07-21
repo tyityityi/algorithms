@@ -137,4 +137,54 @@ public class array {
         }
         return left;
     }
+    /**
+     * [LC410. 分割数组的最大值](https://leetcode-cn.com/problems/split-array-largest-sum/)
+     */
+    //限制一个最大子数组和x，f(x)返回最大子数组和为 x 时，可以将 nums分割成几个子数组。
+    //f(x)会是关于x的单调递减函数。
+    public int numOfSplits(int[] nums, int x){
+        int totalSplits = 1;
+        int count = 0;
+        for(int i=0; i<nums.length; i++){
+            count += nums[i];
+            if(count>x){
+                totalSplits += 1;
+                count = nums[i];
+            }
+        }
+        return totalSplits;
+    }
+    public int splitArray(int[] nums, int m) {
+        //left（最小值）为数组中最大元素的值，right（最大值）为数组中所有元素和
+        int left = -1, right = -1;
+        for(int i=0; i<nums.length; i++){
+            left = Math.max(left, nums[i]);
+            right += nums[i];
+        }
+
+        while(left<=right){
+            int mid = left + (right-left)/2;
+            // 如果最大子数组和是 max，
+            // 至少可以把 nums 分割成 n 个子数组
+            int fx = numOfSplits(nums, mid);
+            if(fx<m)
+                // fx小了，说明x大了，减小一些
+                right = mid - 1;
+            else if(fx>m)
+                // fx大了，说明x小了，增大一些
+                left = mid + 1;
+            else if(fx==m)
+                // 收缩右边界，达到搜索左边界的目的
+                right = mid - 1;
+        }
+        return left;
+    }
+
+
+
+
+
+
+
+
 }

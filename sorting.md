@@ -1,12 +1,14 @@
 # Sorting 排序
 
+[toc]
+
 ------
 
-- ### 快速排序
+## 快速排序
 
-    1. 选择第一个数作为pivot，比pivot小的放左边，比pivot大的放右边。
-    2. 在左边的数里取第一个作为pivot..
-       在右边的数里取第一个作为pivot..
+1. 选择第一个数作为pivot，比pivot小的放左边，比pivot大的放右边。
+2. 在左边的数里取第一个作为pivot..
+   在右边的数里取第一个作为pivot..
 
 <img src="./imgs/quicksort.gif" style="zoom:50%;" />
 
@@ -53,7 +55,7 @@ private static int partition(int[] arr, int left, int right) {
 非稳定排序
 原地排序
 
-- ### 归并排序
+## 归并排序
 
 1. 通过递归的方式将大的数组一直分割，直到数组的大小为1，
 2. 之后再把两个数组大小为1的合并成一个大小为2的，再把两个大小为2的合并成4的.....
