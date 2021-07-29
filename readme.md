@@ -16,30 +16,6 @@
 
 ##### [Sorting 排序](./排序.md)
 
-> Java的comparator中
->
-> ```java
-> @Override
->     public int compare(A o1, A o2) {
->         //升序
->         //return o1.a - o2.a;
->         //降序
->         return o2.a - o1.a;
->     }
-> ```
->
-> 这里o1表示位于前面的对象，o2表示后面的对象
->
-> - 返回-1（或负数），表示不需要交换01和02的位置，o1排在o2前面，asc
-> - 返回1（或正数），表示需要交换01和02的位置，o1排在o2后面，desc
->
-> 为什么`return o2.a - o1.a;`就是降序了：
->
-> 首先o2是第二个元素，o1是第一个元素。无非就以下这些情况：
-> ①： **`o2.a > o1.a`** : 那么此时**返回正数**，表示需要调整o1,o2的顺序，也就是需要把o2放到o1前面，这不就是降序了么。
->
-> ②：**`o2.a < o1.a`** : 那么此时返回负数，表示不需要调整，也就是此时o1 比 o2大， 不还是降序么。
-
 ##### [Binary Tree 二叉树算法](./二叉树.md) 
 
 ##### [Binary Search Tree 二叉搜索树](./二叉搜索树.md)
@@ -80,4 +56,32 @@ labuladong的算法小抄：https://labuladong.gitbook.io/algo/
 
 CS-Notes：http://www.cyc2018.xyz/
 
+## Others
+
 1. 单引号代表char 双引号代表String！
+
+2. 字符的ASCII可以用String.charAt()或者String.codePointAt()来计算；
+
+3. Java的comparator中
+
+    ```java
+    @Override
+     public int compare(A o1, A o2) {
+         //升序
+         //return o1.a - o2.a;
+         //降序
+         return o2.a - o1.a;
+     }
+    ```
+
+    这里o1表示位于前面的对象，o2表示后面的对象
+
+    - 返回-1（或负数），表示不需要交换01和02的位置，o1排在o2前面，asc
+    - 返回1（或正数），表示需要交换01和02的位置，o1排在o2后面，desc
+
+    为什么`return o2.a - o1.a;`就是降序了：
+
+    首先o2是第二个元素，o1是第一个元素。无非就以下这些情况：
+    ①： **`o2.a > o1.a`** : 那么此时**返回正数**，表示需要调整o1,o2的顺序，也就是需要把o2放到o1前面，这不就是降序了么。
+
+    ②：**`o2.a < o1.a`** : 那么此时返回负数，表示不需要调整，也就是此时o1 比 o2大， 不还是降序么。
