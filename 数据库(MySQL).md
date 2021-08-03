@@ -567,7 +567,7 @@ select sql_no_cache count(*) from usr;
 
 > 【参考】@Transactional事务不要滥用。事务会**影响数据库的QPS**，另外使用事务的地方需要考虑各方面的**回滚方案**，包括**缓存回滚、搜索引擎回滚、消息补偿、统计修正**等。
 
-### Where，Group by，Having
+###  Where，Group by，Having
 
 o  where 子句用来筛选 FROM 子句中指定的操作所产生的行。
 

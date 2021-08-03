@@ -95,12 +95,17 @@ public class placeToRun {
 //        System.out.println(a);
 
 
-        Map<Character, Integer> target = new HashMap<>(), window = new HashMap<>();
-        int start = -1;
-        int end = Integer.MAX_VALUE;
-        System.out.println(end);
-        System.out.println(start);
-        System.out.println(end - start);
-        System.out.println(Integer.MAX_VALUE-0);
+//        Map<Character, Integer> target = new HashMap<>(), window = new HashMap<>();
+//        int start = -1;
+//        int end = Integer.MAX_VALUE;
+//        System.out.println(end);
+//        System.out.println(start);
+//        System.out.println(end - start);
+//        System.out.println(Integer.MAX_VALUE-0);
+        Integer i3 = 400;
+        Integer i4 = 400;
+        System.out.println(i3==i4);
+        System.out.println(i3.equals(i4));
+
     }
 }
