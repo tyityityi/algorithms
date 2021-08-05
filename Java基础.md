@@ -779,4 +779,135 @@ Java Io 流共涉及 40 多个类，这些类看上去很杂乱，但实际上�
 
 回答：**字符流**是由 Java 虚拟机将**字节**转换得到的，问题就出在这个过程还算是非常**耗时**，并且，如果我们不知道编码类型就很容易出现**乱码**问题。所以， I/O 流就干脆提供了一个**直接操作字符的接口**，方便我们平时对字符进行流操作。如果**音频文件、图片等媒体文件**用**字节流**比较好，如果涉及到**字符**的话使用**字符流**比较好。
 
-## 
+## 反射
+
+JAVA 反射机制是在运行状态中，
+
+对于任意一个**类**，都能够知道这个类的所有**属性和方法**；
+
+对于任意一个**对象**，都能够调用它的任意一个**方法和属性**；
+
+这种**动态获取的信息以及动态调用对象**的方法的功能称为 java 语言的反射机制。
+
+例子：
+
+- 我们在使用 JDBC 连接数据库时使用 Class.forName()通过反射加载数据库的驱动程序；
+
+- Spring 框架的 IOC（动态加载管理 Bean）创建对象以及 AOP（动态代理）功能都和反射有联系；                         
+
+- 动态配置实例的属性；
+
+### 优缺点
+
+**优点：** **运行期**类型的判断，**动态加载类**，提高代码**灵活度**。
+
+**缺点：** 
+
+- **性能瓶颈**：反射相当于一系列解释操作，通知 JVM 要做的事情，性能比直接的 java 代码要慢很多。
+
+- **安全问题**，让我们可以动态操作改变类的属性同时也增加了类的安全隐患。比如可以无视泛型参数的安全检查（泛型参数的安全检查发生在编译时）
+
+### 获取 Class 对象的四种方式
+
+如果我们动态获取到这些信息，我们需要依靠 Class 对象。**Class 类对象将一个类的方法、变量**等信息告诉运行的程序。Java 提供了四种方式获取 Class 对象:
+
+#### **1.知道具体类的情况下可以使用：**
+
+```java
+Class alunbarClass = TargetObject.class;
+```
+
+但是我们一般是不知道具体类的，基本都是通过遍历包下面的类来获取 Class 对象，通过此方式获取 Class 对象不会进行初始化
+
+#### **2.通过 `Class.forName()`传入类的路径获取：**
+
+```java
+Class alunbarClass1 = Class.forName("cn.javaguide.TargetObject");
+```
+
+#### **3.(常用)通过对象实例`instance.getClass()`获取：**
+
+```java
+TargetObject o = new TargetObject();
+Class alunbarClass2 = o.getClass();
+```
+
+#### **4.通过类加载器`xxxClassLoader.loadClass()`传入类路径获取:**
+
+```java
+Class clazz = ClassLoader.loadClass("cn.javaguide.TargetObject");
+```
+
+通过类加载器获取 Class 对象不会进行初始化，意味着**不进行**包括**初始化**等一些列步骤，**静态块和静态对象不会得到执行**
+
+#### 完整案例：
+
+1.创建一个我们要使用反射操作的类 `TargetObject`。
+
+```java
+package cn.javaguide;
+
+public class TargetObject {
+    private String value;
+
+    public TargetObject() {
+        value = "JavaGuide";
+    }
+
+    public void publicMethod(String s) {
+        System.out.println("I love " + s);
+    }
+
+    private void privateMethod() {
+        System.out.println("value is " + value);
+    }
+}
+```
+
+2.使用反射操作这个类的方法以及参数
+
+```java
+package cn.javaguide;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class Main {
+    public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchFieldException {
+        /**
+         * 获取TargetObject类的Class对象并且创建TargetObject类实例
+         */
+        Class<?> tagetClass = Class.forName("cn.javaguide.TargetObject");
+        TargetObject targetObject = (TargetObject) tagetClass.newInstance();
+        /**
+         * 获取所有类中所有定义的方法
+         */
+        Method[] methods = tagetClass.getDeclaredMethods();
+        for (Method method : methods) {
+            System.out.println(method.getName());//输出1 publicMethod 2 privateMethod
+        }
+        /**
+         * 获取指定方法并调用
+         */
+        Method publicMethod = tagetClass.getDeclaredMethod("publicMethod", String.class);
+
+        publicMethod.invoke(targetObject, "JavaGuide");//输出I love JavaGuide
+        /**
+         * 获取指定参数并对参数进行修改
+         */
+        Field field = tagetClass.getDeclaredField("value");
+        //为了对类中的参数进行修改我们取消安全检查
+        field.setAccessible(true);
+        field.set(targetObject, "JavaGuide");
+        /**
+         * 调用 private 方法
+         */
+        Method privateMethod = tagetClass.getDeclaredMethod("privateMethod");
+        //为了调用private方法我们取消安全检查
+        privateMethod.setAccessible(true);
+        privateMethod.invoke(targetObject);//输出value is JavaGuide
+    }
+}
+```
+
