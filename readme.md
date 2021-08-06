@@ -30,7 +30,9 @@
 
 子序列问题：子序列不一定是连续的
 
-[链表](./链表.md)
+##### [链表](./链表.md)
+
+[数组](./数组.md)
 
 ## 计算机基础
 
@@ -48,13 +50,13 @@
 
 [基础](./Java基础.md)
 
+## 设计模式
+
+代理模式！
 
 
-With Respect to
 
-labuladong的算法小抄：https://labuladong.gitbook.io/algo/
 
-CS-Notes：http://www.cyc2018.xyz/
 
 ## Others
 
@@ -94,4 +96,14 @@ CS-Notes：http://www.cyc2018.xyz/
     
     ```
 
+    With Respect to
     
+    剑指offer
+    
+    剑指offer题解 Java版：https://github.com/CyC2018/CS-Notes/blob/master/notes/%E5%89%91%E6%8C%87%20Offer%20%E9%A2%98%E8%A7%A3%20-%20%E7%9B%AE%E5%BD%95.md
+    
+    labuladong的算法小抄：https://labuladong.gitbook.io/algo/
+    
+    JavaGuide：https://github.com/Snailclimb/JavaGuide
+    
+    架构风清扬：https://www.bilibili.com/video/BV1k74118721
