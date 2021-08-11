@@ -54,7 +54,7 @@
 
 [基础](./Java基础.md)
 
-[容器](./容器.md)
+[容器](./Java容器.md)
 
 ## 设计模式
 
@@ -100,16 +100,27 @@
     //升序的情况下p1<p2（前面的小于后面的），但是这里！！！返回-1！！！
     Arrays.sort(points, (p1, p2) -> p1[1] < p2[1] ? -1 : 1);
     
+    
     ```
+    
+    
+    
+5. **这里补充一点比较重要，但是容易被忽视掉的知识点：**
 
-    With Respect to
+    - java 中的 `length`属性是针对数组说的,比如说你声明了一个数组,想知道这个数组的长度则用到了 length 这个属性.
+    - java 中的 `length()` 方法是针对字符串说的,如果想看这个字符串的长度则用到 `length()` 这个方法.
+    - java 中的 `size()` 方法是针对泛型集合说的,如果想看这个泛型有多少个元素,就调用此方法来查看!
+
     
-    剑指offer
-    
-    剑指offer题解 Java版：https://github.com/CyC2018/CS-Notes/blob/master/notes/%E5%89%91%E6%8C%87%20Offer%20%E9%A2%98%E8%A7%A3%20-%20%E7%9B%AE%E5%BD%95.md
-    
-    labuladong的算法小抄：https://labuladong.gitbook.io/algo/
-    
-    JavaGuide：https://github.com/Snailclimb/JavaGuide
-    
-    架构风清扬：https://www.bilibili.com/video/BV1k74118721
+
+With Respect to
+
+剑指offer
+
+剑指offer题解 Java版：https://github.com/CyC2018/CS-Notes/blob/master/notes/%E5%89%91%E6%8C%87%20Offer%20%E9%A2%98%E8%A7%A3%20-%20%E7%9B%AE%E5%BD%95.md
+
+labuladong的算法小抄：https://labuladong.gitbook.io/algo/
+
+JavaGuide：https://github.com/Snailclimb/JavaGuide
+
+架构风清扬：https://www.bilibili.com/video/BV1k74118721
