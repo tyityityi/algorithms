@@ -18,7 +18,7 @@
 - `LinkedList`： 双向链表(JDK1.6 之前为循环链表，JDK1.7 取消了循环)
 - `Vector`：`Object[]`数组
 
-### ArrayList
+## ArrayList
 
 `ArrayList` 的底层是**数组**，相当于动态数组。与 Java 中的数组相比，它的**容量能动态增长**。在添加大量元素前，应用程序可以使用`ensureCapacity`操作来增加 `ArrayList` 实例的容量。这可以**减少扩容再分配的数量**。
 
@@ -37,9 +37,9 @@ public class ArrayList<E> extends AbstractList<E>
 
 
 
-#### ArrayList扩容
+### ArrayList扩容
 
-##### 1. New ArrayList()<> 无参构造方法
+#### 1. New ArrayList()<> 无参构造方法
 
 **以无参数构造方法创建 `ArrayList` 时，实际上初始化赋值的是一个空数组。**
 
@@ -71,7 +71,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 
 
-##### 2. add(E e) 
+#### 2. add(E e) 
 
 **当真正对数组进行添加元素操作时，才真正分配容量。(即向数组中添加第一个元素时，数组容量扩为 10)**
 
@@ -89,7 +89,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 ```
 
-##### 3. ensureCapacityInternal(int minCapacity)
+#### 3. ensureCapacityInternal(int minCapacity)
 
 **当 要 add 进第 1 个元素时，minCapacity 为 1，在 Math.max()方法比较后，minCapacity 为 10。**
 
@@ -105,7 +105,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-##### 4. ensureExplicitCapacity(int minCapacity)
+#### 4. ensureExplicitCapacity(int minCapacity)
 
 ```java
 		//判断是否需要扩容
@@ -128,7 +128,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 > **注意** ：JDK11 移除了 `ensureCapacityInternal()` 和 `ensureExplicitCapacity()` 方法
 
-##### 5. grow(int minCapacity) - 扩容的核心方法
+#### 5. grow(int minCapacity) - 扩容的核心方法
 
 ```java
  /**
@@ -169,7 +169,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 所以ArrayList的size一般为：0，10，15，22，33...?
 
-##### 6. hugeCapacity(int minCapacity)
+#### 6. hugeCapacity(int minCapacity)
 
 从上面 `grow()` 方法源码我们知道： 如果新容量大于 MAX_ARRAY_SIZE,进入(执行) `hugeCapacity()` 方法来比较 minCapacity 和 MAX_ARRAY_SIZE，如果 minCapacity 大于最大容量，则新容量则为`Integer.MAX_VALUE`，否则，新容量大小则为 MAX_ARRAY_SIZE 即为 `Integer.MAX_VALUE - 8`。
 
@@ -187,7 +187,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-##### 7. `Arrays.copyOf()`方法
+#### 7. `Arrays.copyOf()`方法
 
  `copyOf()` 是系统自动在内部新建一个数组，并返回该数组。
 
@@ -204,7 +204,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 `copyOf()`内部实际调用了 `System.arraycopy()` 方法
 
-##### 8. `System.arraycopy()` 方法
+#### 8. `System.arraycopy()` 方法
 
 ```java
     // 我们发现 arraycopy 是一个 native 方法,接下来我们解释一下各个参数的具体意义
@@ -223,7 +223,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 arraycopy()` 需要目标数组，将原数组拷贝到你自己定义的数组里或者原数组，而且可以选择拷贝的起点和长度以及放入新数组中的位置
 
-#### `ensureCapacity`方法 - 减少扩容重新分配的次数
+### `ensureCapacity`方法 - 减少扩容重新分配的次数
 
 这个方法 ArrayList 内部没有被调用过，所以很显然是提供给用户调用的，那么这个方法有什么作用呢？
 
@@ -297,7 +297,7 @@ public class EnsureCapacityTest {
 
 
 
-#### 附录：ArrayList 源码解读完整版
+### 附录：ArrayList 源码解读完整版
 
 modCount是记录被改变的次数
 
@@ -805,13 +805,13 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-### LinkedList
+## LinkedList
 
 LinkedList是一个实现了List接口和Deque接口的双端链表。 LinkedList底层的链表结构使它支持高效的插入和删除操作，另外它实现了Deque接口，使得LinkedList类也具有队列的特性; LinkedList不是线程安全的。
 
 <img src="imgs/image-20210811174355461-8675038.png" alt="image-20210811174355461" style="width:70%;" />
 
-#### 内部属性
+### 内部属性
 
 ```java
 transient int size = 0;
@@ -833,7 +833,7 @@ transient int size = 0;
 
 
 
-#### Node - LinkedList的内部私有类
+### Node - LinkedList的内部私有类
 
 就是一个双向链表。
 
@@ -852,7 +852,7 @@ private static class Node<E> {
 
 ```
 
-#### 构造方法
+### 构造方法
 
 **空构造方法：**
 
@@ -870,9 +870,9 @@ private static class Node<E> {
     }
 ```
 
-#### add方法
+### add方法
 
-##### **add(E e)** 
+#### **add(E e)** 
 
 将元素添加到链表**尾部**
 
@@ -897,7 +897,7 @@ public boolean add(E e) {
     }
 ```
 
-##### **add(int index,E e)**
+#### **add(int index,E e)**
 
 在指定位置添加元素
 
@@ -954,7 +954,7 @@ public void add(int index, E element) {
 
 linkBefore方法需要给定两个参数，一个插入节点的值，一个指定的node，所以我们又调用了Node(index)（做了一点优化，小于size/2就从头开始找，大于size/2就从尾开始找）去找到index对应的node
 
-##### **addAll(Collection c )**
+#### **addAll(Collection c )**
 
 **将集合插入到链表尾部**
 
@@ -964,7 +964,7 @@ public boolean addAll(Collection<? extends E> c) {
     }
 ```
 
-##### **addAll(int index, Collection c)：**
+#### **addAll(int index, Collection c)：**
 
 将集合从**指定位置**开始**插入**
 
@@ -1028,7 +1028,7 @@ public boolean addAll(int index, Collection<? extends E> c) {
 3. 得到插入位置的前驱和后继节点
 4. 遍历数据，将数据插入到指定位置
 
-##### addFirst(E e)：
+#### addFirst(E e)：
 
  将元素添加到链表头部
 
@@ -1051,7 +1051,7 @@ private void linkFirst(E e) {
     }
 ```
 
-##### **addLast(E e)：**
+#### **addLast(E e)：**
 
 将元素添加到链表尾部，与 **add(E e)** 方法一样
 
@@ -1061,9 +1061,9 @@ public void addLast(E e) {
     }
 ```
 
-#### 根据index获取对象的方法
+### 根据index获取对象的方法
 
-##### **get(int index)：**
+#### **get(int index)：**
 
 根据指定索引返回数据
 
@@ -1076,9 +1076,9 @@ public E get(int index) {
     }
 ```
 
-#### **获取头节点（index=0）对象的方法: **
+### **获取头节点（index=0）对象的方法: **
 
-##### getFirst(), element(), peek(), peekFirst()
+#### getFirst(), element(), peek(), peekFirst()
 
 ```java
 public E getFirst() {
@@ -1111,9 +1111,9 @@ public E peekFirst() {
 
     peek()和peekFirst()实现完全一样，返回null
 
-#### **获取尾节点（index=-1）对象的方法:** 
+### **获取尾节点（index=-1）对象的方法:** 
 
-##### getLast(), peekLast()
+#### getLast(), peekLast()
 
 ```java
  public E getLast() {
@@ -1130,9 +1130,9 @@ public E peekFirst() {
 
 **两者区别：** **getLast()** 方法在链表为空时，会抛出**NoSuchElementException**，而**peekLast()** 则不会，只是会返回 **null**。
 
-#### 根据对象得到index的方法
+### 根据对象得到index的方法
 
-##### **int indexOf(Object o)**
+#### **int indexOf(Object o)**
 
  从头遍历找
 
@@ -1158,7 +1158,7 @@ public int indexOf(Object o) {
     }
 ```
 
-##### **int lastIndexOf(Object o)：** 
+#### **int lastIndexOf(Object o)：** 
 
 从尾遍历找
 
@@ -1184,9 +1184,9 @@ public int lastIndexOf(Object o) {
     }
 ```
 
-#### 检查链表是否包含某对象的方法：
+### 检查链表是否包含某对象的方法：
 
-##### **contains(Object o)：** 返回对象第一次出现的索引
+#### **contains(Object o)：** 返回对象第一次出现的索引
 
 检查对象o是否存在于链表中，**
 
@@ -1196,9 +1196,9 @@ public int lastIndexOf(Object o) {
     }
 ```
 
-#### 删除方法
+### 删除方法
 
-##### **remove()** ,**removeFirst(), pop():** 删除头节点 全部抛异常
+#### **remove()** ,**removeFirst(), pop():** 删除头节点 全部抛异常
 
 ```java
 public E pop() {
@@ -1233,7 +1233,7 @@ private E unlinkFirst(Node<E> f) {
 }
 ```
 
-##### **removeLast(), pollLast():** 删除尾节点
+#### **removeLast(), pollLast():** 删除尾节点
 
 ```java
 public E removeLast() {
@@ -1268,7 +1268,7 @@ private E unlinkLast(Node<E> l) {
 
 **区别：** removeLast()在链表为空时将抛出NoSuchElementException，而pollLast()方法返回null。
 
-##### **remove(Object o):** 删除指定对象（只会删除一个匹配的对象）
+#### **remove(Object o):** 删除指定对象（只会删除一个匹配的对象）
 
 ```java
 public boolean remove(Object o) {
@@ -1332,7 +1332,7 @@ E unlink(Node<E> x) {
     }
 ```
 
-##### **remove(int index)**：删除指定index的元素
+#### **remove(int index)**：删除指定index的元素
 
 ```java
 public E remove(int index) {
@@ -1343,7 +1343,7 @@ public E remove(int index) {
     }
 ```
 
-#### LinkedList类常用方法测试
+### LinkedList类常用方法测试
 
 ```java
 package list;
@@ -1469,7 +1469,7 @@ public class LinkedListDemo {
 }
 ```
 
-### synchronizedList - 线程安全的LinkedList
+## synchronizedList - 线程安全的LinkedList
 
 LinkedList不是线程安全的，如果想使LinkedList变成线程安全的，可以调用静态类Collections类中的synchronizedList方法：
 
@@ -1481,13 +1481,13 @@ List list=Collections.synchronizedList(new LinkedList(...));
 
 
 
-### ArrayList 和 Vector 的区别?
+## ArrayList 和 Vector 的区别?
 
 1. ArrayList **线程不安全** `Vector`线程安全
 2. ArrayList扩容时按照50%增加，Vector按照100%增加。
 3. ArrayList的性能要高于Vector
 
-### ArrayList 与 LinkedList 区别?
+## ArrayList 与 LinkedList 区别?
 
 1. **是否保证线程安全：** `ArrayList` 和 `LinkedList` 都是**不同步**的，也就是**不保证线程安全**；
 2. **底层数据结构：** `Arraylist` 底层使用的是 **`Object` 数组**；`LinkedList` 底层使用的是 **双向链表** 数据结构（JDK1.6 之前为循环链表，JDK1.7 取消了循环。注意**双向链表**和**双向循环链表**的区别）
@@ -1504,11 +1504,23 @@ List list=Collections.synchronizedList(new LinkedList(...));
 
 # Set - Collection子接口
 
-实现类及底层实现：
+## 实现类：HashSet、LinkedHashSet 和 TreeSet
 
-- `HashSet`（无序，唯一）: 基于 `HashMap` 实现的，底层采用 `HashMap` 来保存元素
-- `LinkedHashSet`：`LinkedHashSet` 是 `HashSet` 的子类，并且其内部是通过 `LinkedHashMap` 来实现的。有点类似于我们之前说的 `LinkedHashMap` 其内部是基于 `HashMap` 实现一样，不过还是有一点点区别的
-- `TreeSet`（有序，唯一）： 红黑树(自平衡的排序二叉树)
+- `HashSet`（无序，唯一）: 基于 `HashMap` 实现的，底层采用 `HashMap` 来保存元素，线程不安全的，可以存储 null 值；
+- `LinkedHashSet`：`LinkedHashSet` 是 `HashSet` 的子类，并且其内部是通过 `LinkedHashMap` 来实现的，能够按照添加的顺序遍历；有点类似于我们之前说的 `LinkedHashMap` 其内部是基于 `HashMap` 实现一样，不过还是有一点点区别的
+- `TreeSet`（有序，唯一）： 红黑树(自平衡的排序二叉树)，能够按照添加元素的顺序进行遍历，排序的方式有自然排序和定制排序。
+
+## 无序性
+
+无序性不等于随机性 ，无序性是指存储的数据在底层数组中并非按照数组索引的顺序添加 ，而是根据数据的哈希值决定的。
+
+## 不可重复性
+
+不可重复性是指添加的元素按照 equals()判断时 ，返回 false，需要同时重写 equals()方法和 HashCode()方法。
+
+
+
+
 
 # Queue - Collection子接口
 
@@ -1521,16 +1533,72 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
 - Deque有两个实现类：
     - ArrayDeque通常作为栈或队列使用，但是栈的效率不如LinkedList高。
     - LinkedList通常作为栈或队列使用，但是队列的效率不如ArrayQueue高。
-        
 
 # Map
 
 实现类及底层实现：
 
-- `HashMap`： JDK1.8 之前 `HashMap` 由数组+链表组成的，数组是 `HashMap` 的主体，链表则是主要为了解决哈希冲突而存在的（“拉链法”解决冲突）。JDK1.8 以后在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为 8）（将链表转换成红黑树前会判断，如果当前数组的长度小于 64，那么会选择先进行数组扩容，而不是转换为红黑树）时，将链表转化为红黑树，以减少搜索时间
+- `HashMap`： 
+
+    JDK1.8 之前 `HashMap` 由数组+链表组成的，数组是 `HashMap` 的主体，链表则是主要为了解决哈希冲突而存在的（“拉链法”解决冲突）。
+
+    JDK1.8 以后 `HashMap` 由数组+链表/红黑树组成，在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为 8）（将链表转换成红黑树前会判断，如果当前数组的长度小于 64，那么会选择先进行数组扩容，而不是转换为红黑树）时，将链表转化为红黑树，以减少搜索时间
+
 - `LinkedHashMap`： `LinkedHashMap` 继承自 `HashMap`，所以它的底层仍然是基于拉链式散列结构即由数组和链表或红黑树组成。另外，`LinkedHashMap` 在上面结构的基础上，增加了一条双向链表，使得上面的结构可以保持键值对的插入顺序。同时通过对链表进行相应的操作，实现了访问顺序相关逻辑。详细可以查看：[《LinkedHashMap 源码详细分析（JDK1.8）》](https://www.imooc.com/article/22931)
+
 - `Hashtable`： 数组+链表组成的，数组是 `Hashtable` 的主体，链表则是主要为了解决哈希冲突而存在的
+
 - `TreeMap`： 红黑树（自平衡的排序二叉树）
+
+## HashMap
+
+# Collections 工具类 
+
+Collections 工具类，主要是对**Collection**以及其子接口**List**进行操作，常用方法:
+
+1. 排序
+2. 查找,替换操作
+3. 同步控制(不推荐，需要线程安全的集合类型时请考虑使用 **JUC 包下的并发集合**)
+
+## 排序操作
+
+```java
+void reverse(List list)//反转
+void shuffle(List list)//随机排序
+void sort(List list)//按自然排序的升序排序
+void sort(List list, Comparator c)//定制排序，由Comparator控制排序逻辑
+void swap(List list, int i , int j)//交换两个索引位置的元素
+void rotate(List list, int distance)//旋转。当distance为正数时，将list后distance个元素整体移到前面。当distance为负数时，将 list的前distance个元素整体移到后面
+```
+
+## 查找,替换操作
+
+```Java
+int binarySearch(List list, Object key)//对List进行二分查找，返回索引，注意List必须是有序的
+int max(Collection coll)//根据元素的自然顺序，返回最大的元素。 类比int min(Collection coll)
+int max(Collection coll, Comparator c)//根据定制排序，返回最大元素，排序规则由Comparatator类控制。类比int min(Collection coll, Comparator c)
+void fill(List list, Object obj)//用指定的元素代替指定list中的所有元素
+int frequency(Collection c, Object o)//统计元素出现次数
+int indexOfSubList(List list, List target)//统计target在list中第一次出现的索引，找不到则返回-1，类比int lastIndexOfSubList(List source, list target)
+boolean replaceAll(List list, Object oldVal, Object newVal)//用新元素替换旧元素
+```
+
+## 同步控制
+
+`Collections` 提供了多个`synchronizedXxx()`方法·，该方法可以将指定集合包装成线程同步的集合，从而解决多线程并发访问集合时的线程安全问题。
+
+我们知道 `HashSet`，`TreeSet`，`ArrayList`,`LinkedList`,`HashMap`,`TreeMap` 都是线程不安全的。`Collections` 提供了多个静态方法可以把他们包装成线程同步的集合。
+
+**最好不要用下面这些方法，效率非常低，需要线程安全的集合类型时请考虑使用 JUC 包下的并发集合。**
+
+方法如下：
+
+```java
+synchronizedCollection(Collection<T>  c) //返回指定 collection 支持的同步（线程安全的）collection。
+synchronizedList(List<T> list)//返回指定列表支持的同步（线程安全的）List。
+synchronizedMap(Map<K,V> m) //返回由指定映射支持的同步（线程安全的）Map。
+synchronizedSet(Set<T> s) //返回指定 set 支持的同步（线程安全的）set。
+```
 
 # Collection vs Collections
 
@@ -1539,4 +1607,135 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
 - **Collections**是**工具类**
     1. 提供很多**对集合的操作方式**，如，排序，二分查找，填充，最大，最小；
     2. 提供一系列返回**同步集合**的方式（本质是在集合的方法上面加上**同步锁synchronized**）。
+
+# comparable 和 Comparator 的区别
+
+- `comparable` 接口实际上是出自`java.lang`包 它有一个 `compareTo(Object obj)`方法用来排序
+- `Comparator`接口实际上是出自 java.util 包它有一个`compare(Object obj1, Object obj2)`方法用来排序
+
+一般我们需要对一个**集合**使用**自定义排序**时，我们就要重写`compareTo()`方法或`compare()`方法。
+
+当我们需要对某一个集合实现**两种排序**方式，比如一个 song 对象中的歌名和歌手名分别采用一种排序方法的话，我们可以重写`compareTo()`方法和使用自制的`Comparator`方法或者以两个 Comparator 来实现歌名排序和歌星名排序，第二种代表我们只能使用两个参数版的 `Collections.sort()`.
+
+## Comparator 定制compare方法来排序：
+
+```java
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(-1);
+        arrayList.add(3);
+        arrayList.add(3);
+        arrayList.add(-5);
+        arrayList.add(7);
+        arrayList.add(4);
+        arrayList.add(-9);
+        arrayList.add(-7);
+        System.out.println("原始数组:");
+        System.out.println(arrayList);
+        // void reverse(List list)：反转
+        Collections.reverse(arrayList);
+        System.out.println("Collections.reverse(arrayList):");
+        System.out.println(arrayList);
+
+        // void sort(List list),按自然排序的升序排序
+        Collections.sort(arrayList);
+        System.out.println("Collections.sort(arrayList):");
+        System.out.println(arrayList);
+        // 定制排序的用法
+        Collections.sort(arrayList, new Comparator<Integer>() {
+
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o2.compareTo(o1);//像Integer类等都已经实现了Comparable接口，所以不需要另外实现了
+            }
+        });
+        System.out.println("定制排序后：");
+        System.out.println(arrayList);
+```
+
+Output:
+
+```java
+原始数组:
+[-1, 3, 3, -5, 7, 4, -9, -7]
+Collections.reverse(arrayList):
+[-7, -9, 4, 7, -5, 3, 3, -1]
+Collections.sort(arrayList):
+[-9, -7, -5, -1, 3, 3, 4, 7]
+定制排序后：
+[7, 4, 3, 3, -1, -5, -7, -9]
+```
+
+## Comparable：重写 compareTo 方法来排序
+
+实现按年龄来排序：
+
+```java
+// person对象没有实现Comparable接口，所以必须实现，这样才不会出错，才可以使treemap中的数据按顺序排列
+// 前面一个例子的String类已经默认实现了Comparable接口，详细可以查看String类的API文档，另外其他
+// 像Integer类等都已经实现了Comparable接口，所以不需要另外实现了
+public  class Person implements Comparable<Person> {
+    private String name;
+    private int age;
+
+    public Person(String name, int age) {
+        super();
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    /**
+     * T重写compareTo方法实现按年龄来排序
+     */
+    @Override
+    public int compareTo(Person o) {
+        if (this.age > o.getAge()) {
+            return 1;
+        }
+        if (this.age < o.getAge()) {
+            return -1;
+        }
+        return 0;
+    }
+}
+    public static void main(String[] args) {
+        TreeMap<Person, String> pdata = new TreeMap<Person, String>();
+        pdata.put(new Person("张三", 30), "zhangsan");
+        pdata.put(new Person("李四", 20), "lisi");
+        pdata.put(new Person("王五", 10), "wangwu");
+        pdata.put(new Person("小红", 5), "xiaohong");
+        // 得到key的值的同时得到key所对应的值
+        Set<Person> keys = pdata.keySet();
+        for (Person key : keys) {
+            System.out.println(key.getAge() + "-" + key.getName());
+
+        }
+    }
+```
+
+Output：
+
+```java
+5-小红
+10-王五
+20-李四
+30-张三
+```
+
+- 2. 
 
