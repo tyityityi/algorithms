@@ -1534,7 +1534,7 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
     - ArrayDeque通常作为栈或队列使用，但是栈的效率不如LinkedList高。
     - LinkedList通常作为栈或队列使用，但是队列的效率不如ArrayQueue高。
 
-# Map
+# Map接口
 
 实现类及底层实现：
 
@@ -1551,6 +1551,16 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
 - `TreeMap`： 红黑树（自平衡的排序二叉树）
 
 ## HashMap
+
+`HashMap` 主要用来存放键值对，是非线程安全的，要保证线程安全的话用 `ConcurrentHashMap` 
+
+`HashMap` 可以存储 null 的 key 和 value，但 null 作为key只能有一个，null 作为value可以有多个
+
+`HashMap` 默认的初始化大小为 16。之后每次扩充，容量变为原来的 2 倍。并且， `HashMap` 总是使用 2 的幂作为哈希表的大小。
+
+
+
+## 
 
 # Collections 工具类 
 
