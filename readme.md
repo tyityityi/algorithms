@@ -1,3 +1,5 @@
+I hope I could code for fun, unfortunately I code to make a living -:) 
+
 # Table of Contents
 
 ------

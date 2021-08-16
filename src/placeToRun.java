@@ -107,6 +107,7 @@ public class placeToRun {
         System.out.println(i3==i4);
         System.out.println(i3.equals(i4));
         ArrayList<Integer> a = new ArrayList<>();
+        Map<Integer, Integer> a = new HashMap<>();
 
     }
 }
