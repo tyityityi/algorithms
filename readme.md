@@ -38,6 +38,8 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 [栈、队列、堆](./栈队列堆.md)
 
+[LRU、lFU缓存机制](./LRULFU缓存机制.md)
+
 [笔试题汇总](./笔试题.md)
 
 
