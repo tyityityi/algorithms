@@ -1758,7 +1758,7 @@ putVal 方法只是给 put 方法调用的一个方法，并没有提供给用�
 public V put(K key, V value) {
     return putVal(hash(key), key, value, false, true);
 }
-
+//三个东西，hashCode，hash，取模结果！
 final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
     Node<K,V>[] tab; 
@@ -1768,6 +1768,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
     if ((tab = table) == null || (n = tab.length) == 0)
         n = (tab = resize()).length;
     // (n - 1) & hash 确定元素存放在哪个桶中，桶为空，新生成结点放入桶中(此时，这个结点是放在数组中)
+    //！相当于取模运算！！！！！
     if ((p = tab[i = (n - 1) & hash]) == null)//两个操作数中位都为1，结果才为1，否则结果为0
         tab[i] = newNode(hash, key, value, null);
     // 桶中已经存在元素
@@ -1779,7 +1780,8 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
             ((k = p.key) == key || (key != null && key.equals(k))))
                 // 将第一个元素赋值给e，用e来记录
                 e = p;
-        // hash值不相等，即key不相等；为红黑树结点
+        // hash值不相等，即key不相等；（应该为hash值相等，key值不相等）
+      	//为红黑树结点
         else if (p instanceof TreeNode)
             // 放入树中
             e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
@@ -2073,7 +2075,13 @@ public class HashMapDemo {
 }
 ```
 
+### 相关问题
 
+#### 1 为什么初始数组大小为16，扩容变为32，64...?
+
+&17-1的话 10000, 就不是取模效果了，只有16-1 32-1 64-1 &1111 &111111 &11111才是取模运算，效率高
+
+#### 2
 
 
 
