@@ -1562,7 +1562,7 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
 
 - `TreeMap`： 红黑树（自平衡的排序二叉树）
 
-## HashMap（1.8及之后）
+## HashMap的实现（1.8及之后）
 
 `HashMap` 主要用来存放键值对，是非线程安全的，要保证线程安全的话用 `ConcurrentHashMap` 
 
@@ -1571,6 +1571,8 @@ https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.p
 `HashMap` 默认的初始化大小为 16。之后每次扩充，容量变为原来的 2 倍。并且， `HashMap` 总是使用 2 的幂作为哈希表的大小。
 
 ### 类的属性
+
+<img src="imgs/image-20210824194458608-9805500.png" alt="image-20210824194458608" style="width:50%;" />
 
 ```java
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable {
@@ -1746,6 +1748,18 @@ final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         }
     }
 }
+```
+
+### hash方法
+
+```java
+    static final int hash(Object key) {
+      int h;
+      // key.hashCode()：返回散列值也就是hashcode
+      // ^ ：按位异或
+      // >>>:无符号右移，忽略符号位，空位都以0补齐
+      return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+  }
 ```
 
 ### put 方法(触发扩容)
@@ -2075,15 +2089,77 @@ public class HashMapDemo {
 }
 ```
 
-### 相关问题
+## HashMap 的长度为什么是 2 的幂次方
 
-#### 1 为什么初始数组大小为16，扩容变为32，64...?
+为了能让 HashMap 存取高效，尽量较少碰撞，也就是要尽量把数据分配**均匀**。**Hash 值（散列值）**的范围值-2147483648 到 2147483647，前后加起来大概 40 亿的映射空间，只要哈希函数映射得比较均匀松散，一般应用是**很难出现碰撞**的。但问题是一个 40 亿长度的数组，内存是放不下的。
 
-&17-1的话 10000, 就不是取模效果了，只有16-1 32-1 64-1 &1111 &111111 &11111才是取模运算，效率高
+所以这个**散列值**是不能直接拿来用的。
 
-#### 2
+用之前还要先做**对数组的长度取模运算**，得到的**余数**才能用来要存放的位置也就是对应的数组下标。
 
+取模运算可以用**%取余**的操作来实现。但是，HashMap中数组下标的计算方法是 **`(n - 1) & hash`**，n 代表数组长度。**“取余(%)操作中如果除数是 2 的幂次则等价于与其除数减一的与(&)操作（也就是说 hash%length==hash&(length-1)的前提是 length 是 2 的 n 次方；）。”** 并且 **采用<u>二进制位操作 &</u>，相对于%能够提高运算效率，这就解释了 HashMap 的长度为什么是 2 的幂次方。**
 
+## HashMap 多线程操作导致死循环问题
+
+jdk 1.8 后解决了这个问题。但是1.8之前的多线程死循环问题：
+
+主要原因在于**并发下的 Rehash 会造成元素之间会形成一个循环链表**。所以在调用**HashTable.get()**的时候出现死循环。
+
+### 正常的ReHash的过程
+
+- 我假设了我们的hash算法就是简单的用key mod 一下表的大小（也就是数组的长度）。
+
+- 最上面的是old hash 表，其中的Hash表的size=2, 所以key = 3, 7, 5，在mod 2以后都冲突在table[1]这里了。
+
+- 接下来的三个步骤是Hash表 resize成4，然后所有的<key,value> 重新rehash的过程
+
+![img](https://coolshell.cn/wp-content/uploads/2013/05/HashMap01.jpg)
+
+### 并发下的Rehash
+
+**1）有两个线程：红色线程T1和蓝色线程T2。**
+
+我们再回头看一下我们的 transfer代码中的这个细节：
+
+```java
+do {
+    Entry<K,V> next = e.next; // <--假设线程一执行到这里就被调度挂起了
+    int i = indexFor(e.hash, newCapacity);
+    e.next = newTable[i];
+    newTable[i] = e;
+    e = next;
+} while (e != null);
+```
+
+而线程T2执行完成了。于是我们有下面的这个样子。
+
+![img](https://coolshell.cn/wp-content/uploads/2013/05/HashMap02.jpg)
+
+注意，**因为T1的 e 指向了key(3)，而next指向了key(7)，其在T2 rehash后，指向了T2重组后的链表**。我们可以看到链表的顺序被反转后。
+
+**2）T1被调度回来执行。**
+
+- **先是执行 newTalbe[i] = e;**
+- **然后是e = next，导致了e指向了key(7)（T1中的e指向3，next指向7）**
+- **而下一次循环的next = e.next导致了next指向了key(3)（T2中的7.next == 3）**
+
+![img](https://coolshell.cn/wp-content/uploads/2013/05/HashMap03.jpg)
+
+**3）一切安好。**
+
+T1接着工作，**把key(7)摘下来（头插），放到newTable[i]的第一个，然后把e和next往下移**。
+
+![img](https://coolshell.cn/wp-content/uploads/2013/05/HashMap04.jpg)
+
+**4）环形链接出现。**
+
+**e.next = newTable[i] 导致 key(3).next 指向了 key(7)**
+
+**注意：此时的key(7).next 已经指向了key(3)， 环形链表就这样出现了。**
+
+![img](https://coolshell.cn/wp-content/uploads/2013/05/HashMap05.jpg)
+
+**于是，当我们的线程一调用到，HashTable.get(11)时，悲剧就出现了——Infinite Loop。**
 
 # Collections 工具类 
 

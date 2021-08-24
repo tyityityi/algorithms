@@ -275,16 +275,16 @@ public class test1 {
 
 #### 基本数据类型及对应的包装类型
 
-| 基本类型  | 位数 | 字节 | 默认值  | 包装类型  |
-| --------- | ---- | ---- | ------- | --------- |
-| `int`     | 32   | 4    | 0       | Integer   |
-| `short`   | 16   | 2    | 0       | Short     |
-| `long`    | 64   | 8    | 0L      | Long      |
-| `byte`    | 8    | 1    | 0       | Byte      |
-| `char`    | 16   | 2    | 'u0000' | Character |
-| `float`   | 32   | 4    | 0f      | Float     |
-| `double`  | 64   | 8    | 0d      | Double    |
-| `boolean` | 1    |      | false   | Boolean   |
+| 基本类型     | 位数 | 字节 | 默认值  | 包装类型  |
+| ------------ | ---- | ---- | ------- | --------- |
+| `int`        | 32   | 4    | 0       | Integer   |
+| `short`      | 16   | 2    | 0       | Short     |
+| `long`(整数) | 64   | 8    | 0L      | Long      |
+| `byte`       | 8    | 1    | 0       | Byte      |
+| `char`       | 16   | 2    | 'u0000' | Character |
+| `float`      | 32   | 4    | 0f      | Float     |
+| `double`     | 64   | 8    | 0d      | Double    |
+| `boolean`    | 1    |      | false   | Boolean   |
 
 另外，对于 `boolean`，官方文档未明确定义，它依赖于 JVM 厂商的具体实现。逻辑上理解是占用 1 位，但是实际中会考虑计算机高效存储因素。
 

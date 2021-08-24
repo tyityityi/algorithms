@@ -108,6 +108,7 @@ public class placeToRun {
         System.out.println(i3.equals(i4));
         ArrayList<Integer> a = new ArrayList<>();
         Map<Integer, Integer> hm = new HashMap<>();
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((o1, o2) -> o2[0]-o1[0]);
 
     }
 }
