@@ -111,7 +111,8 @@ I hope I could code for fun, unfortunately I code to make a living -:)
     ```java
     //升序的情况下p1<p2（前面的小于后面的），但是这里！！！返回-1！！！
     Arrays.sort(points, (p1, p2) -> p1[1] < p2[1] ? -1 : 1);
-    
+    //pq降序
+    PriorityQueue<int[]> maxHeap = new PriorityQueue<int[]>((o1,o2)->o2[1]-o1[1]);
     
     ```
     
