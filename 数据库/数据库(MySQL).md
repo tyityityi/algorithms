@@ -575,4 +575,6 @@ o  group by 子句用来分组 where 子句的输出。
 
 o  having 子句用来从分组的结果中筛选行。
 
- 
+###  [红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)的五个特性记得吗？
+
+### mysql索引为什么使用B+树不使用B树 为什么我不使用[红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)？

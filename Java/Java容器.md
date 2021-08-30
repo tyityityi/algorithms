@@ -1536,15 +1536,74 @@ List list=Collections.synchronizedList(new LinkedList(...));
 
 # Queue - Collection子接口
 
-## Queue与其子接口Deque的区别：
+## Queue
 
-https://blog.csdn.net/cartoon_/article/details/101720731?utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-1.control&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-1.control
+`Queue` 是单端队列，只能从一端插入元素，另一端删除元素，实现上一般遵循 **先进先出（FIFO）** 规则。
 
-- PriorityQueue可以作为堆使用，而且可以根据传入的Comparator实现大小的调整，会是一个很好的选择。
+`Queue` 扩展了 `Collection` 的接口，根据 **因为容量问题而导致操作失败后处理方式的不同** 可以分为两类方法: 一种在操作失败后会抛出异常，另一种则会返回特殊值。
 
-- Deque有两个实现类：
-    - ArrayDeque通常作为栈或队列使用，但是栈的效率不如LinkedList高。
-    - LinkedList通常作为栈或队列使用，但是队列的效率不如ArrayQueue高。
+| `Queue` 接口 | 抛出异常  | 返回特殊值 |
+| ------------ | --------- | ---------- |
+| 插入队尾     | add(E e)  | offer(E e) |
+| 删除队首     | remove()  | poll()     |
+| 查询队首元素 | element() | peek()     |
+
+### PriorityQueue
+
+`PriorityQueue` 实现了 `Queue` 接口，区别在于元素出队顺序是与优先级相关的，即总是优先级最高的元素先出队。
+
+这里列举其相关的一些要点：
+
+- `PriorityQueue` 利用了**二叉堆**来实现的，底层使用**可变长的数组**来存储数据
+
+- `PriorityQueue` 通过堆元素的上浮和下沉，实现了在 **O(logn)** 的时间复杂度内**插入**元素和**删除堆顶**元素；**获取堆顶**元素复杂度为**O(1)**，但是poll()之后**相当于删除了堆顶元素**，需要**O(logn)**的时间上浮或下沉(重排序)
+
+- `PriorityQueue` 是非线程安全的，且不支持存储 `NULL` 和 `non-comparable` 的对象。
+
+- `PriorityQueue` 默认是**小顶堆**，但可以接收一个 `Comparator` 作为构造参数，从而来自定义元素优先级的先后。
+
+    ```java
+    //pq降序方法1
+    PriorityQueue<int[]> maxHeap = new PriorityQueue<int[]>((o1,o2)->o2[1]-o1[1]);
+    //pq降序方法2
+    PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
+        new Comparator<Integer>(){
+          	public int compare(Integer o1, Integer o2){
+            		return o2 - o1;//PQ默认为升序，最大堆需要降序
+          	}
+        });
+    ```
+
+    
+
+
+
+## Deque - Queue的子接口
+
+`Deque` 是双端队列，在队列的两端均可以插入或删除元素。
+
+`Deque` 扩展了 `Queue` 的接口, 增加了在队首和队尾进行插入和删除的方法，同样根据失败后处理方式的不同分为两类：
+
+| `Deque` 接口 | 抛出异常      | 返回特殊值      |
+| ------------ | ------------- | --------------- |
+| 插入队首     | addFirst(E e) | offerFirst(E e) |
+| 插入队尾     | addLast(E e)  | offerLast(E e)  |
+| 删除队首     | removeFirst() | pollFirst()     |
+| 删除队尾     | removeLast()  | pollLast()      |
+| 查询队首元素 | getFirst()    | peekFirst()     |
+| 查询队尾元素 | getLast()     | peekLast()      |
+
+事实上，`Deque` 还提供有 `push()` 和 `pop()` 等其他方法，可用于模拟栈。
+
+### ArrayDeque 与 LinkedList 的区别(注意不是ArrayList)
+
+`ArrayDeque` 和 `LinkedList` 都实现了 `Deque` 接口，两者都具有队列的功能，区别在于：
+
+- `ArrayDeque` 是基于可变长的**数组和双指针**来实现，而 `LinkedList` 则通过**链表**来实现。
+- `ArrayDeque` 不支持存储 **`NULL`** 数据，但 `LinkedList` 支持。
+- `ArrayDeque` 插入时可能存在扩容过程, 不过均摊后的插入操作依然为 O(1)。虽然 `LinkedList` 不需要扩容，但是每次插入数据时均需要申请新的堆空间，均摊性能相比更慢。
+
+从性能的角度上，选用 `ArrayDeque` 来实现队列要比 `LinkedList` 更好。此外，`ArrayDeque` 也可以用于实现栈。
 
 # Map接口
 

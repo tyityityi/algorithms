@@ -4,6 +4,7 @@ import algorithms.lookup;
 import sorting.sortingAlgorithms;
 import algorithms.recursive;
 
+import javax.sound.midi.Soundbank;
 import java.util.*;
 
 public class placeToRun {
@@ -102,13 +103,18 @@ public class placeToRun {
 //        System.out.println(start);
 //        System.out.println(end - start);
 //        System.out.println(Integer.MAX_VALUE-0);
-        Integer i3 = 400;
-        Integer i4 = 400;
-        System.out.println(i3==i4);
-        System.out.println(i3.equals(i4));
-        ArrayList<Integer> a = new ArrayList<>();
-        Map<Integer, Integer> hm = new HashMap<>();
-        PriorityQueue<int[]> minHeap = new PriorityQueue<>((o1, o2) -> o2[0]-o1[0]);
+//        Integer i3 = 400;
+//        Integer i4 = 400;
+//        System.out.println(i3==i4);
+//        System.out.println(i3.equals(i4));
+//        ArrayList<Integer> a = new ArrayList<>();
+//        Map<Integer, Integer> hm = new HashMap<>();
+//        PriorityQueue<int[]> minHeap = new PriorityQueue<>((o1, o2) -> o2[0]-o1[0]);
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        minHeap.offer(2);
+        minHeap.offer(2);
+        System.out.println(minHeap.poll());
+        System.out.println(minHeap.poll());
 
     }
 }
