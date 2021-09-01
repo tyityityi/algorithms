@@ -14,7 +14,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 可以大胆猜测，常规解法是用 [回溯算法]() 暴力穷举，但是更好的解法是动态规划，而且是一个二维动态规划，需要一个 `M * N` 的二维 `dp` 数组，所以产生了这样一个时间复杂度。
 
-### [Sorting 排序](./算法/排序.md)
+### [排序&区间问题](./算法/排序&区间问题.md)
 
 ### [Binary Tree 二叉树算法](./算法/二叉树.md) 
 
