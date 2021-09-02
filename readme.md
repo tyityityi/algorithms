@@ -34,6 +34,8 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 子序列问题：子序列不一定是连续的
 
+[分治](./算法/分治.md)
+
 ### [链表](./算法/链表.md)
 
 ### [数组](./算法/数组.md)
@@ -67,6 +69,8 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 ### [基础](./Java/Java基础.md)
 
 ### [容器](./Java/Java容器.md)
+
+### [并发](./Java/Java并发.md)
 
 ## 设计模式
 
