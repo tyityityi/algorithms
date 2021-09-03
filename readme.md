@@ -20,7 +20,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [Binary Search Tree 二叉搜索树](./二叉搜索树.md)
 
-### [DFS 回溯算法](./算法/回溯算法.md)
+### [DFS 搜索回溯算法](./算法/DFS搜索回溯算法.md)
 
 ### [BFS 广度优先算法](./算法/BFS广度优先算法.md)
 
@@ -34,7 +34,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 子序列问题：子序列不一定是连续的
 
-[分治](./算法/分治.md)
+### [分治](./算法/分治.md)
 
 ### [链表](./算法/链表.md)
 
@@ -128,7 +128,24 @@ I hope I could code for fun, unfortunately I code to make a living -:)
     - java 中的 `length()` 方法是针对字符串说的,如果想看这个字符串的长度则用到 `length()` 这个方法.
     - java 中的 `size()` 方法是针对泛型集合说的,如果想看这个泛型有多少个元素,就调用此方法来查看!
 
+6. 获取一个int的个位  十位 百位 千位
+
+    ```java
     
+        public static void takePlace(){
+            int intNum = 2108;
+            int thousand = intNum/1000;//千
+            int hundred = intNum/100%10;//百
+            int ten = intNum/10%10;//十
+            int a= intNum%10;//个
+        }
+    ```
+
+    
+
+    
+
+
 
 With Respect to
 

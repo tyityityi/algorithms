@@ -815,7 +815,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 LinkedList是一个实现了List接口和Deque接口的双端链表。 LinkedList底层的链表结构使它支持高效的插入和删除操作，另外它实现了Deque接口，使得LinkedList类也具有队列的特性; LinkedList不是线程安全的。
 
-<img src="imgs/image-20210811174355461-8675038.png" alt="image-20210811174355461" style="width:70%;" />
+<img src="../imgs/image-20210811174355461-8675038.png" alt="image-20210811174355461" style="width:70%;" />
 
 ### 类的属性
 

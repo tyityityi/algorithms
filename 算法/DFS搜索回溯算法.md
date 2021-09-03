@@ -1,4 +1,4 @@
-# DFS 回溯算法
+## DFS 回溯算法
 
 [toc]
 
@@ -33,9 +33,9 @@ def backtrack(路径, 选择列表):
         将该选择再加入选择列表
 ```
 
-## [LC46. 全排列](https://leetcode-cn.com/problems/permutations/)
+## [LC46. 数字全排列](https://leetcode-cn.com/problems/permutations/)
 
-给定一个不含重复数字的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
+给定一个**不含重复数字**的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
 
 示例 1：输入：nums = [1,2,3]
 输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
@@ -106,6 +106,64 @@ public List<List<Integer>> permute(int[] nums);
 对链表使用 `contains` 方法需要 O(N) 的时间复杂度
 
 必须说明的是，不管怎么优化，都符合回溯框架，而且时间复杂度都不可能低于 O(N!)，因为穷举整棵决策树是无法避免的。**这也是回溯算法的一个特点，不像动态规划存在重叠子问题可以优化，回溯算法就是纯暴力穷举，复杂度一般都很高**。
+
+## [剑指 Offer 38. 字符串的全排列](https://leetcode-cn.com/problems/zi-fu-chuan-de-pai-lie-lcof/)
+
+输入一个字符串，打印出该字符串中字符的所有排列。
+
+你可以以任意顺序返回这个字符串数组，但里面不能有重复元素。
+
+**示例:**
+
+```
+输入：s = "abc"
+输出：["abc","acb","bac","bca","cab","cba"]
+```
+
+函数签名
+
+```java
+public String[] permutation(String s);
+```
+
+###  Solution
+
+与<u>LC46数字全排列</u>的区别在于给定的字符串中可能有重复的字符，用Set来接收结果；
+
+字符不能用List<Character>来记录subRes，要用StringBuilder；
+
+StringBuilder没有contains()方法，要加一个boolean[] visited来记录已用过的字符；
+
+```java
+Set<String> res = new HashSet<>();//避免重复
+    public String[] permutation(String s) {
+        dfs(s, new StringBuilder(""), new boolean[s.length()]);
+        return res.toArray(new String[res.size()]);
+    }
+    public void dfs(String s, StringBuilder subRes, boolean[] visited){
+        //结束条件
+        if(subRes.length()==s.length()){
+            res.add(subRes.toString());
+            return;
+        }
+
+        for(int i=0; i<s.length(); i++){
+            if(visited[i]) continue;
+            //做选择
+            subRes.append(s.charAt(i));
+            visited[i] = true;
+            //进入下一层决策树
+            dfs(s, subRes, visited);
+            //撤销选择
+            subRes.deleteCharAt(subRes.length()-1);
+            visited[i] = false;
+        }
+    }
+```
+
+时间复杂度：O(n×n!)，其中 n 为给定字符串的长度。这些字符的全部排列有 O(n!) 个，每个排列平均需要 O(n) 的时间来生成。
+
+空间复杂度：O(n)。我们需要 O(n) 的栈空间进行回溯，注意返回值不计入空间复杂度。
 
 ## [LC78. 子集](https://leetcode-cn.com/problems/subsets/)
 
@@ -180,7 +238,7 @@ public List<List<Integer>> combine(int n, int k);
 
 ### <u>**Solution**</u>
 
-<img src="imgs/image-20210717183853438.png" alt="image-20210717183853438" style="width:67%;" />
+<img src="../imgs/image-20210717183853438.png" alt="image-20210717183853438" style="width:67%;" />
 
 这就是典型的回溯算法，`k` 限制了树的高度，`n` 限制了树的宽度，到达树的底部（即result.size==k）才加入results；
 
@@ -208,6 +266,143 @@ public List<List<Integer>> combine(int n, int k);
         }
     }
 ```
+
+## [剑指 Offer 12. 矩阵中的路径](https://leetcode-cn.com/problems/ju-zhen-zhong-de-lu-jing-lcof/)
+
+给定一个 `m x n` 二维字符网格 `board` 和一个字符串单词 `word` 。如果 `word` 存在于网格中，返回 `true` ；否则，返回 `false` 。
+
+单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。
+
+例如，在下面的 3×4 的矩阵中包含单词 "ABCCED"（单词中的字母已标出）。
+
+<img src="imgs/word2.jpg" alt="img" style="width:15%;" />
+
+**示例 1：**
+
+```
+输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：board = [["a","b"],["c","d"]], word = "abcd"
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `1 <= board.length <= 200`
+- `1 <= board[i].length <= 200`
+- `board` 和 `word` 仅由大小写英文字母组成
+
+函数签名
+
+```java
+public boolean exist(char[][] board, String word);
+```
+
+### Solution
+
+O(MN)遍历矩阵中每个值找开头char相等的，dfs找剩下的
+
+不能走回头路，用一个visited矩阵记录已访问的元素，（也可将board临时赋值成‘/’，用来标记已访问的元素，省下了bool[][] visited的空间，撤销选择的时候再把字符替换回去，省下O(MN)的空间）
+
+```java
+public boolean exist(char[][] board, String word){
+        for(int i=0; i<board.length; i++){
+            for(int j=0; j<board[0].length; j++){
+                if(dfs(board, i, j, word, 0, new boolean[board.length][board[0].length]))
+                    return true;
+            }
+        }
+        return false;
+    }
+    public boolean dfs(char[][] board, int i, int j, String word, int curr, boolean[][] visited){
+        if(i<0 || i>=board.length || j<0 || j>=board[0].length) return false;//数组越界
+        if(board[i][j]!=word.charAt(curr)) return false;//char不相等
+        if(visited[i][j]) return false;//已访问过，不可再次访问
+        if(curr==word.length()-1) return true;//结束条件
+        visited[i][j] = true;//防止重新访问
+        boolean res = dfs(board, i+1, j, word, curr+1, visited) ||
+                    dfs(board, i, j+1, word, curr+1, visited) ||
+                    dfs(board, i-1, j, word, curr+1, visited) ||
+                    dfs(board, i, j-1, word, curr+1, visited);
+        if(!res)
+            visited[i][j] = false;//撤销选择
+        return res;
+    }
+```
+
+- 时间复杂度 O(3^KMN)： 最差情况下，需要遍历矩阵中长度为 KK 字符串的所有方案，时间复杂度为 O(3^K)；矩阵中共有 MNMN 个起点，时间复杂度为 O(MN) 。
+    - 方案数计算： 设字符串长度为 KK ，搜索中每个字符有上、下、左、右四个方向可以选择，舍弃回头（上个字符）的方向，剩下 3 种选择，因此方案数的复杂度为 O(3^K)。
+- 空间复杂度 O(K)或O(MN) ： 
+    - 搜索过程中的递归深度不超过 K ，因此系统因函数调用累计使用的栈空间占用 O(K) （因为函数返回后，系统调用的栈空间会释放）。
+    - visited占用O(MN)，当然这是可以被替代的。board临时赋值成‘/’，用来标记已访问的元素，省下了bool[][] visited的空间，
+    - 最坏情况下 K = MN ，递归深度为 MN ，此时系统栈使用 O(MN) 的额外空间。
+
+## [剑指 Offer 13. 机器人的运动范围](https://leetcode-cn.com/problems/ji-qi-ren-de-yun-dong-fan-wei-lcof/)
+
+地上有一个m行n列的方格，从坐标 `[0,0]` 到坐标 `[m-1,n-1]` 。一个机器人从坐标 `[0, 0] `的格子开始移动，它每次可以向左、右、上、下移动一格（不能移动到方格外），也不能进入行坐标和列坐标的数位之和大于k的格子。例如，当k为18时，机器人能够进入方格 [35, 37] ，因为3+5+3+7=18。但它不能进入方格 [35, 38]，因为3+5+3+8=19。请问该机器人能够到达多少个格子？
+
+**示例 1：**
+
+```
+输入：m = 2, n = 3, k = 1
+输出：3
+```
+
+**示例 2：**
+
+```
+输入：m = 3, n = 1, k = 0
+输出：1
+```
+
+**提示：**
+
+- `1 <= n,m <= 100`
+- `0 <= k <= 20`
+
+函数签名
+
+```java
+
+```
+
+### 思路
+
+dfs或bfs，从左上(0,0)出发往右下走，不走回头路，用visited记录已到达的位置。
+
+注意 **不可用两个for循环遍历 m x n的方格**，因为会遍历到**不可达解**。
+
+<img src="imgs/image-20210903140526418-0649127.png" alt="image-20210903140526418" style="width:60%;" />
+
+### Solution - DFS
+
+```java
+public int movingCount(int m, int n, int k) {
+        return dfs(0, 0, m, n, k, new boolean[m][n]);
+    }
+    public int dfs(int i, int j, int m, int n, int k, boolean[][] visited){
+        if(i<0 || i>=m || j<0 || j>=n) return 0;//数组越界
+        if(visited[i][j]) return 0;//因为是从左上向右下搜索，避免重复
+        if(!isValid(i,j,k)) return 0;//是否大于k
+        visited[i][j] = true;
+        //往下走或往右走
+        return 1 + dfs(i+1, j, m, n, k, visited) + dfs(i, j+1, m, n, k, visited);
+    }
+    public boolean isValid(int i, int j, int k){
+        //百位 + 十位 + 个位
+        return (i/100 + (i/10)%10 + i%10 + j/100 + (j/10)%10 + j%10) <= k;
+    }
+```
+
+时间复杂度 O(MN) ： 最差情况下，机器人遍历矩阵所有单元格，此时时间复杂度为 O(MN) 。
+空间复杂度 O(MN) ： visited 内存储矩阵所有单元格的索引，使用 O(MN)的额外空间。
 
 
 
@@ -530,8 +725,6 @@ public boolean canPartitionKSubsets(int[] nums, int k);
 
 数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
 
- 
-
 示例 1：
 
 输入：n = 3
@@ -607,3 +800,4 @@ public List<String> generateParenthesis(int n);
 `left` 和 `right` 的组合好办，他俩取值就是 0~n 嘛，组合起来也就 `n^2` 种而已；这个 `track` 的长度虽然取在 0~2n，但对于每一个长度，它还有指数级的括号组合，这个是不好算的。
 
 说了这么多，就是想让大家知道这个算法的复杂度是**指数级**，而且不好算，这里就不具体展开了，是 $\frac{4^{n}}{\sqrt{n}}$
+

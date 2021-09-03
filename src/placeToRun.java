@@ -115,6 +115,10 @@ public class placeToRun {
         minHeap.offer(2);
         System.out.println(minHeap.poll());
         System.out.println(minHeap.poll());
+        String s = "aab";
+        char[] chars = s.toCharArray();
+        for(int i=0; i<chars.length; i++)
+            System.out.println(chars[i]);
 
     }
 }
