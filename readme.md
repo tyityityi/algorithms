@@ -44,6 +44,8 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [缓存淘汰算法(LRU、LFU)](./算法/缓存淘汰算法.md)
 
+### [位运算](./算法/位运算.md)
+
 ### [笔试题汇总](./算法/笔试题.md)
 
 

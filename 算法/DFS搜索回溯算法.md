@@ -62,7 +62,7 @@ public List<List<Integer>> permute(int[] nums);
 
 构造决策树，前序遍历位置做选择，后序遍历位置撤销选择
 
-<img src="imgs/image-20210716142708055.png" alt="image-20210716142708055" style="width:80%;" />
+<img src="../imgs/image-20210716142708055.png" alt="image-20210716142708055" style="width:80%;" />
 
 关键点在于用`contains` 方法排除已经选择的数字。
 
@@ -171,8 +171,6 @@ Set<String> res = new HashSet<>();//避免重复
 
 解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
 
- 
-
 示例 1：
 
 输入：nums = [1,2,3]
@@ -190,7 +188,7 @@ public List<List<Integer>> subsets(int[] nums);
 
 ### <u>**Solution**</u>
 
-<img src="imgs/image-20210717180407833.png" alt="image-20210717180407833" style="width:50%;" />
+<img src="../imgs/image-20210717180407833.png" alt="image-20210717180407833" style="width:50%;" />
 
 与全排列不同，寻找子集不必到决策树**最底层**（即无结束条件）再加入结果，而是在决策树的**每一层都要加入结果**
 
@@ -271,7 +269,7 @@ public List<List<Integer>> combine(int n, int k);
 
 给定一个 `m x n` 二维字符网格 `board` 和一个字符串单词 `word` 。如果 `word` 存在于网格中，返回 `true` ；否则，返回 `false` 。
 
-单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。
+单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母**不允许被重复使用**。
 
 例如，在下面的 3×4 的矩阵中包含单词 "ABCCED"（单词中的字母已标出）。
 
@@ -290,8 +288,6 @@ public List<List<Integer>> combine(int n, int k);
 输入：board = [["a","b"],["c","d"]], word = "abcd"
 输出：false
 ```
-
- 
 
 **提示：**
 
@@ -337,8 +333,8 @@ public boolean exist(char[][] board, String word){
     }
 ```
 
-- 时间复杂度 O(3^KMN)： 最差情况下，需要遍历矩阵中长度为 KK 字符串的所有方案，时间复杂度为 O(3^K)；矩阵中共有 MNMN 个起点，时间复杂度为 O(MN) 。
-    - 方案数计算： 设字符串长度为 KK ，搜索中每个字符有上、下、左、右四个方向可以选择，舍弃回头（上个字符）的方向，剩下 3 种选择，因此方案数的复杂度为 O(3^K)。
+- 时间复杂度 O(3^KMN)： 矩阵中共有 MN 个起点，时间复杂度为 O(MN) ; 最差情况下，需要遍历矩阵中长度为 K 字符串的所有方案，时间复杂度为 O(3^K):
+    - 方案数计算： 设字符串长度为 K ，搜索中每个字符有上、下、左、右四个方向可以选择，舍弃回头（上个字符）的方向，剩下 3 种选择，因此方案数的复杂度为 O(3^K)。
 - 空间复杂度 O(K)或O(MN) ： 
     - 搜索过程中的递归深度不超过 K ，因此系统因函数调用累计使用的栈空间占用 O(K) （因为函数返回后，系统调用的栈空间会释放）。
     - visited占用O(MN)，当然这是可以被替代的。board临时赋值成‘/’，用来标记已访问的元素，省下了bool[][] visited的空间，
@@ -370,12 +366,12 @@ public boolean exist(char[][] board, String word){
 函数签名
 
 ```java
-
+public int movingCount(int m, int n, int k);
 ```
 
 ### 思路
 
-dfs或bfs，从左上(0,0)出发往右下走，不走回头路，用visited记录已到达的位置。
+dfs或bfs，从左上(0,0)出发往右下走，不走回头路(因为回头路没意义)，用visited记录已到达的位置。
 
 注意 **不可用两个for循环遍历 m x n的方格**，因为会遍历到**不可达解**。
 
@@ -408,13 +404,11 @@ public int movingCount(int m, int n, int k) {
 
 ## [LC51. N 皇后](https://leetcode-cn.com/problems/n-queens/)
 
-n 皇后问题 研究的是如何将 n 个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击（皇后彼此不能相互攻击，也就是说：任何两个皇后都不能处于同一条横行、纵行或斜线上）。
+n 皇后问题 研究的是如何将 n 个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击（皇后彼此不能相互攻击，也就是说：**任何两个皇后都不能处于同一条横行、纵行或斜线上**）。
 
 给你一个整数 n ，返回所有不同的 n 皇后问题 的解决方案。
 
-每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
-
- 
+每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。 
 
 示例 1：
 
@@ -463,7 +457,7 @@ public List<List<String>> solveNQueens(int n);
     // 结束条件：row 超过 board 的最后一行
     public void dfsSolveNQueens(char[][] board, int row){
         int totalRow = board.length;
-        // 触发结束条件: row的取值为[0,n-1],当row=n时，board[n]会报错
+        // 触发结束条件: board的取值为[0,n-1],当row=n时，已经取不到board[n]
         if(row==totalRow){
             List<String> result = new LinkedList<>();
             //将结果逐行转化为List<String>并加入results
@@ -572,6 +566,13 @@ board.length == 9
 board[i].length == 9
 board[i][j] 是一位数字或者 '.'
 题目数据 保证 输入数独仅有一个解
+
+函数签名
+
+```java
+public void solveSudoku(char[][] board);
+输入是一个9x9的棋盘，空白格子用点号字符 . 表示，算法需要在原地修改棋盘，将空白格子填上数字，得到一个可行解。
+```
 
 ### <u>**思路**</u>
 
@@ -709,7 +710,7 @@ public boolean canPartitionKSubsets(int[] nums, int k);
             // 做选择，将 nums[i] 装入当前桶中
             used[i] = true;
             bucketSum += nums[i];
-            // 递归穷举下一个数字是否装入当前桶, 前面的数字都已经判断过，所以这里的numsStartIdx=i+1而不是0
+            // 递归穷举下一个数字是否装入当前桶, 前面的数字都已经判断过，所以这里的numsStartIdx=i+1而不是i
             if(dfsPartitionKSubsets(k, bucketSum, bucketTargetSum, nums, i+1, used))
                 return true;
             // 撤销选择
@@ -723,7 +724,7 @@ public boolean canPartitionKSubsets(int[] nums, int k);
 
 ## [LC22. 括号生成](https://leetcode-cn.com/problems/generate-parentheses/)
 
-数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 **有效(合法?)的** 括号组合。
 
 示例 1：
 
@@ -754,7 +755,7 @@ public List<String> generateParenthesis(int n);
 
 1、得到全部 `2^(2n)` 种组合；
 
-2、根据我们刚才总结出的**合法**括号组合的性质**筛选出合法的组合**：不是简单的记录穷举位置 `i`，而是**用** **`left`** **记录还可以使用多少个左括号，用** **`right`** **记录还可以使用多少个右括号**，两者初始值都为n，且**left<right**(因为括号都是先左后右), l**eft和right都>=0**；
+2、根据我们刚才总结出的**合法**括号组合的性质**筛选出合法的组合**：不是简单的记录穷举位置 `i`，而是**用** **`left`** **记录还可以使用多少个左括号，用** **`right`** **记录还可以使用多少个右括号**，两者初始值都为n，且**left<right**(因为括号都是先左后右), **left和right都>=0**；
 
 3、 当left和right都==0时，满足结束条件，可加入结果集
 
@@ -795,9 +796,9 @@ public List<String> generateParenthesis(int n);
     }
 ```
 
-**对于** **`backtrack`** **函数，状态有三个，分别是** **`left, right, track`**，这三个变量的所有组合个数就是 `backtrack` 函数的状态个数（调用次数）。
+**对于** **`backtrack`** **函数，状态有三个，分别是** **`left, right, result`**，这三个变量的所有组合个数就是 `dfs` 函数的状态个数（调用次数）。
 
-`left` 和 `right` 的组合好办，他俩取值就是 0~n 嘛，组合起来也就 `n^2` 种而已；这个 `track` 的长度虽然取在 0~2n，但对于每一个长度，它还有指数级的括号组合，这个是不好算的。
+`left` 和 `right` 的组合好办，他俩取值就是 0~n 嘛，组合起来也就 `n^2` 种而已；这个 result 的长度虽然取在 0~2n，但对于每一个长度，它还有指数级的括号组合，这个是不好算的。
 
-说了这么多，就是想让大家知道这个算法的复杂度是**指数级**，而且不好算，这里就不具体展开了，是 $\frac{4^{n}}{\sqrt{n}}$
+说了这么多，就是想让大家知道这个算法的复杂度是**指数级**，而且不好算，这里就不具体展开了，是 (4^n)/sqrt(n)
 

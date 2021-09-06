@@ -110,15 +110,20 @@ public class placeToRun {
 //        ArrayList<Integer> a = new ArrayList<>();
 //        Map<Integer, Integer> hm = new HashMap<>();
 //        PriorityQueue<int[]> minHeap = new PriorityQueue<>((o1, o2) -> o2[0]-o1[0]);
-        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        minHeap.offer(2);
-        minHeap.offer(2);
-        System.out.println(minHeap.poll());
-        System.out.println(minHeap.poll());
-        String s = "aab";
-        char[] chars = s.toCharArray();
-        for(int i=0; i<chars.length; i++)
-            System.out.println(chars[i]);
-
+//        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+//        minHeap.offer(2);
+//        minHeap.offer(2);
+//        //System.out.println(minHeap.poll());
+//        System.out.println(minHeap.poll());
+//        String s = "aab";
+//        char[] chars = s.toCharArray();
+//        for(int i=0; i<chars.length; i++)
+//            System.out.println(chars[i]);
+        List<Long> list = new ArrayList<>();
+        list.add(1l);
+        list.add(2l);
+        list.remove(0);
+        list.add(5, 5l);
+        System.out.println(list.get(5));
     }
 }

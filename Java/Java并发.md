@@ -1,3 +1,5 @@
+[toc]
+
 # 线程和进程
 
 ## 进程
@@ -714,7 +716,9 @@ public class Singleton {
 
 # ThreadLocal
 
-通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**如果想实现每一个线程都有自己的专属本地变量该如何解决呢？** JDK 中提供的`ThreadLocal`类正是为了解决这样的问题。 **`ThreadLocal`类主要解决的就是让每个线程绑定自己的值，可以将`ThreadLocal`类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。**
+通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**ThreadLocal实现了每一个线程都有自己的专属本地变量.**
+
+JDK 中提供的`ThreadLocal`类正是为了解决这样的问题。 **`ThreadLocal`类主要解决的就是让每个线程绑定自己的值，可以将`ThreadLocal`类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。**
 
 **如果你创建了一个`ThreadLocal`变量，那么访问这个变量的每个线程都会有这个变量的本地副本，这也是`ThreadLocal`变量名的由来。他们可以使用 `get（）` 和 `set（）` 方法来获取默认值或将其值更改为当前线程所存的副本的值，从而避免了线程安全问题。**
 
@@ -780,7 +784,7 @@ Thread Name= 8 formatter = yy-M-d ah:mm
 Thread Name= 9 formatter = yy-M-d ah:mm
 ```
 
-从输出中可以看出，Thread-0 已经改变了 formatter 的值，但仍然是 thread-2 默认格式化程序与初始化值相同，其他线程也一样。
+从输出中可以看出，Thread-0 已经改变了 formatter 的值，其他线程也一样。
 
 上面有一段代码用到了创建 `ThreadLocal` 变量的那段代码用到了 Java8 的知识，它等于下面这段代码，如果你写了下面这段代码的话，IDEA 会提示你转换为 Java8 的格式(IDEA 真的不错！)。因为 ThreadLocal 类在 Java 8 中扩展，使用一个新的方法`withInitial()`，将 Supplier 功能接口作为参数。
 
@@ -829,7 +833,7 @@ ThreadLocalMap getMap(Thread t) {
 
 通过上面这些内容，我们足以通过猜测得出结论：**最终的变量是放在了当前线程的 `ThreadLocalMap` 中，并不是存在 `ThreadLocal` 上，`ThreadLocal` 可以理解为只是`ThreadLocalMap`的封装，传递了变量值。** `ThrealLocal` 类中可以通过`Thread.currentThread()`获取到当前线程对象后，直接通过`getMap(Thread t)`可以访问到该线程的`ThreadLocalMap`对象。
 
-**每个`Thread`中都具备一个`ThreadLocalMap`，而`ThreadLocalMap`可以存储以`ThreadLocal`为 key ，Object 对象为 value 的键值对。`ThreadLocalMap`是`ThreadLocal`的静态内部类。**
+**<u>每个`Thread`中都具备一个`ThreadLocalMap`，而`ThreadLocalMap`可以存储以`ThreadLocal`为 key ，Object 对象为 value 的键值对。`ThreadLocalMap`是`ThreadLocal`的静态内部类。</u>**
 
 ```java
 ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
@@ -866,6 +870,35 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 > 如果一个对象只具有弱引用，那就类似于**可有可无的生活用品**。弱引用与软引用的区别在于：只具有弱引用的对象拥有更短暂的生命周期。在垃圾回收器线程扫描它 所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。不过，由于垃圾回收器是一个优先级很低的线程， 因此不一定会很快发现那些只具有弱引用的对象。
 >
 > 弱引用可以和一个引用队列（ReferenceQueue）联合使用，如果弱引用所引用的对象被垃圾回收，Java 虚拟机就会把这个弱引用加入到与之关联的引用队列中。
+
+## ThreadLocalMap中的hashcode()方法与Object中的不同
+
+魔法值HASH_INCREMENT让哈希码能均匀的分布在 2 的 N 次方的数组里.
+
+先看一下 ThreadLocalMap 中的 set 方法:
+
+```java
+private void set(ThreadLocal<?> key, Object value) {
+    Entry[] tab = table;
+    int len = tab.length;
+    int i = key.threadLocalHashCode & (len-1);
+    ...
+}
+
+private final int threadLocalHashCode = nextHashCode();
+private static final int HASH_INCREMENT = 0x61c88647 ; 
+//让当前线程的nextHashCode这个值与魔法值HASH_INCREMENT相加。每调用一次加一次魔法值。也就是线程中每添加一个threadlocal，AtomicInteger 类型的nextHashCode值就会增加一个HASH_INCREMENT。其中定义了一个魔法值 HASH_INCREMENT = 0x61c88647，对于实例变量 threadLocalHashCode，每当创建 ThreadLocal 实例时这个值都会getAndAdd(0x61c88647)。
+private static int nextHashCode () { return nextHashCode.getAndAdd ( HASH_INCREMENT ); }
+
+
+```
+
+`ThreadLocal` 中使用了斐波那契散列法，来保证哈希表的离散度。而它选用的乘数值即是`2^32 * 黄金分割比`。
+
+`0x61c88647` 与一个神奇的数字产生了关系，它就是 `(Math.sqrt(5) - 1)/2`。也就是传说中的黄金比例 0.618（0.618 只是一个粗略值），即`0x61c88647 = 2^32 * 黄金分割比`。同时也对应上了上文所提到的斐波那契散列法。
+
+ThreadLocalMap 中 Entry[] table 的大小必须是 2 的 N 次方（len = 2^N）那 len-1 的二进制表示就是低位连续的 N 个 1， 那key.threadLocalHashCode & (len-1) 的值就是 threadLocalHashCode的低 N 位。
+
 
 # 线程池
 
