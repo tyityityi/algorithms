@@ -276,6 +276,12 @@ CAS机制当中使用了3个基本操作数：内存地址V，旧的预期值A�
 
 **更新一个变量的时候，只有当变量的预期值A和内存地址V当中的实际值相同时，才会将内存地址V对应的值修改为B。**
 
+例如: **AtomicInteger**中调用unsafe类的底层native compareAndSwapInt方法 -> c++中的cmpxchg方法, 
+
+- Unsafe 是 CAS 的核心类，Java 无法直接访问底层操作系统，而是通过本地 native` 方法来访问。不过尽管如此，JVM 还是开了一个后门：Unsafe ，它提供了硬件级别的原子操作。
+- valueOffset 为变量值在内存中的偏移地址，Unsafe 就是通过偏移地址来得到数据的原值的。
+- value当前值，使用volatile 修饰，保证多线程环境下看见的是同一个。
+
 ## CAS的缺点：
 
 ### 1.CPU可能开销较大
@@ -284,21 +290,21 @@ CAS机制当中使用了3个基本操作数：内存地址V，旧的预期值A�
 
 ### 2.不能保证代码块的原子性
 
-CAS机制所保证的只是**一个变量的原子性操作**，而**不能保证整个代码块的原子性**。比如需要保证3个变量共同进行原子性的更新，就不得不使用悲观锁了。
+CAS机制所保证的只是**一个变量的原子性操作**，而**不能保证整个代码块的原子性**。当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁，或者有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如有两个共享变量i＝2,j=a，合并一下ij=2a，然后用CAS来操作ij。从Java1.5开始JDK提供了**AtomicReference类来保证引用对象之间的原子性，你可以把多个变量放在一个对象里来进行CAS操作。**
 
-### 3.ABA问题。
+
+
+### 3.ABA问题
 
 CAS的核心思想是通过比对内存值与预期值是否一样而判断内存值是否被改过，但这个判断逻辑不严谨，**假如内存值原来是A，后来被一条线程改为B，最后又被改成了A，则CAS认为此内存值并没有发生改变**，但实际上是有被其他线程改过的，这种情况对依赖过程值的情景的运算结果影响很大。
 
-### ABA问题处理：
+#### 解决: 版本号
 
 思路：解决ABA最简单的方案就是给值加一个修改**版本号**，每次值变化，都会修改它版本号，CAS操作时都对比此版本号。
 
 **AtomicMarkableReference**则是将一个boolean值作是否有更改的标记，本质就是它的版本号只有两个，true和false，修改的时候在这两个版本号之间来回切换，这样做并不能解决ABA的问题，只是会降低ABA问题发生的几率而已；
 
 **AtomicStampedReference** 本质是有一个int 值作为版本号，每次更改前先取到这个int值的版本号，等到修改的时候，比较当前版本号与当前线程持有的版本号是否一致，如果一致，则进行修改，并将版本号+1（当然加多少或减多少都是可以自己定义的），在zookeeper中保持数据的一致性也是用的这种方式；
-
-
 
 例子：
 
@@ -587,24 +593,25 @@ GC标记信息 后两位11
 | 轻量级锁 | **竞争的线程不会阻塞, 提高了程序的响应速度**                 | **如果始终得不到锁竞争的线程, 使用自旋会消耗CPU**   | **追求响应时间, 同步快执行速度非常快** |
 | 重量级锁 | **线程竞争不使用自旋, 不会消耗CPU**                          | **线程堵塞, 响应时间缓慢**                          | **追求吞吐量, 同步快执行时间速度较长** |
 
-## sychronized例子：双重校验锁的单例模式
+## sychronized例子：懒加载双重校验锁的单例模式
 
 下面我以一个常见的面试题为例讲解一下 `synchronized` 关键字的具体使用。
 
 面试中面试官经常会说：“单例模式了解吗？来给我手写一下！给我解释一下**双重检验锁方式**实现单例模式的原理呗！”
 
-**双重校验锁实现对象单例（线程安全）**
+懒加载双重校验锁实现对象单例（线程安全）**
 
 **双重检验锁** 第二次判断目的在于有可能其他线程获取过锁，已经初始化该变量。
 
 ```java
 public class Singleton {
-
+		
     private volatile static Singleton uniqueInstance;
-
+		//private保证构造器私有,其他类无法通过Singleton s = new Singleton();来构造Instance实例
     private Singleton() {
     }
-
+		//其他类只能通过getUniqueInstance方法来构造实例
+  	//懒加载,需要用到才构建,避免不必要的内存浪费
     public static Singleton getUniqueInstance() {
        //先判断对象是否已经实例过，没有实例化过才进入加锁代码
         if (uniqueInstance == null) {//双重检验锁第一次判断
@@ -632,13 +639,27 @@ public class Singleton {
 
  `uniqueInstance = new Singleton();` 这段代码其实是分为三步执行：
 
-1. 为 `uniqueInstance` 分配内存空间
-2. 初始化 `uniqueInstance`
-3. 将 `uniqueInstance` 指向分配的内存地址
+1. **为 `uniqueInstance` 分配内存空间**
+2. **初始化 `uniqueInstance`**
+3. **将 `uniqueInstance` 指向分配的内存地址**
 
-但是由于 JVM 具有指令重排的特性，执行顺序有可能变成 1->3->2。指令重排在单线程环境下不会出现问题，但是在多线程环境下**指令重排**会导致一个**线程获得还没有初始化的实例**。例如，线程 T1 执行了 1 和 3，此时 T2 调用 `getUniqueInstance`() 后发现 `uniqueInstance` 不为空，因此返回 `uniqueInstance`，但此时 `uniqueInstance` 还未被初始化。
+但是由于 JVM 具有指令重排的特性，执行顺序有可能变成 **1->3->2**。指令重排在单线程环境下不会出现问题，但是在多线程环境下**指令重排**会导致一个**线程获得还没有初始化的实例**。例如，**线程 T1 执行了 1 和 3，此时 T2 调用 `getUniqueInstance`() 后发现 `uniqueInstance` 不为空，因此返回 `uniqueInstance`，但此时 `uniqueInstance` 还未被初始化。**
 
 使用 **`volatile` 可以禁止 JVM 的指令重排**，**Java线程内存模型确保所有线程看到这个变量的值是一致的**保证在多线程环境下也能正常运行。
+
+### ps: 枚举类型的单例
+
+上面这种单例模式虽然**满足1懒加载2线程安全**,但是会被**反射破坏, 即通过反射操作可以构建两个不同的实例**,但是这种操作时人为的,可避免的(只要不用反射获取单例就可以);
+
+解决办法是运用枚举类型构建单例模式: 反射无法获取枚举类型的无参构造函数,因为枚举类型不存在无参构造函数,且编译器无法通过反射来创建枚举类型的对象
+
+```java
+public enum Singleton{
+		INSTANCE;
+}
+```
+
+但是这种模式无法做到懒加载,即一创建就已构建实例. 所以在**人为可避免反射破坏的前提下,还是通过懒汉双锁来构建单例模式**
 
 # synchronized 和 ReentrantLock 的区别
 
@@ -716,7 +737,7 @@ public class Singleton {
 
 # ThreadLocal
 
-通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**ThreadLocal实现了每一个线程都有自己的专属本地变量.**
+通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**ThreadLocal实现了每一个线程都有自己的专属本地局部变量.**
 
 JDK 中提供的`ThreadLocal`类正是为了解决这样的问题。 **`ThreadLocal`类主要解决的就是让每个线程绑定自己的值，可以将`ThreadLocal`类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。**
 
@@ -725,17 +746,19 @@ JDK 中提供的`ThreadLocal`类正是为了解决这样的问题。 **`ThreadLo
 ## ThreadLocal 示例
 
 ```java
-import java.text.SimpleDateFormat;
 import java.util.Random;
 
 public class ThreadLocalExample implements Runnable{
 
-     // SimpleDateFormat 不是线程安全的，所以每个线程都要有自己独立的副本
-    private static final ThreadLocal<SimpleDateFormat> formatter = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMdd HHmm"));
+    private static final ThreadLocal threadNo = new ThreadLocal(){
+        protected String initialValue(){
+            return "这是重写initial value后的default initial value";
+        }
+    };
 
     public static void main(String[] args) throws InterruptedException {
         ThreadLocalExample obj = new ThreadLocalExample();
-        for(int i=0 ; i<10; i++){
+        for(int i=0 ; i<3; i++){
             Thread t = new Thread(obj, ""+i);
             Thread.sleep(new Random().nextInt(1000));
             t.start();
@@ -744,16 +767,16 @@ public class ThreadLocalExample implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("Thread Name= "+Thread.currentThread().getName()+" default Formatter = "+formatter.get().toPattern());
+        System.out.println("Thread "+Thread.currentThread().getName()+": "+threadNo.get());
         try {
             Thread.sleep(new Random().nextInt(1000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        //formatter pattern is changed here by thread, but it won't reflect to other threads
-        formatter.set(new SimpleDateFormat());
+        //threadNo会为每个线程提供独立的本地空间
+        threadNo.set("这是Thread "+Thread.currentThread().getName()+"修改后的value");
 
-        System.out.println("Thread Name= "+Thread.currentThread().getName()+" formatter = "+formatter.get().toPattern());
+        System.out.println("Thread "+Thread.currentThread().getName()+": "+threadNo.get());
     }
 
 }
@@ -762,40 +785,15 @@ public class ThreadLocalExample implements Runnable{
 Output:
 
 ```java
-Thread Name= 0 default Formatter = yyyyMMdd HHmm
-Thread Name= 0 formatter = yy-M-d ah:mm
-Thread Name= 1 default Formatter = yyyyMMdd HHmm
-Thread Name= 2 default Formatter = yyyyMMdd HHmm
-Thread Name= 1 formatter = yy-M-d ah:mm
-Thread Name= 3 default Formatter = yyyyMMdd HHmm
-Thread Name= 2 formatter = yy-M-d ah:mm
-Thread Name= 4 default Formatter = yyyyMMdd HHmm
-Thread Name= 3 formatter = yy-M-d ah:mm
-Thread Name= 4 formatter = yy-M-d ah:mm
-Thread Name= 5 default Formatter = yyyyMMdd HHmm
-Thread Name= 5 formatter = yy-M-d ah:mm
-Thread Name= 6 default Formatter = yyyyMMdd HHmm
-Thread Name= 6 formatter = yy-M-d ah:mm
-Thread Name= 7 default Formatter = yyyyMMdd HHmm
-Thread Name= 7 formatter = yy-M-d ah:mm
-Thread Name= 8 default Formatter = yyyyMMdd HHmm
-Thread Name= 9 default Formatter = yyyyMMdd HHmm
-Thread Name= 8 formatter = yy-M-d ah:mm
-Thread Name= 9 formatter = yy-M-d ah:mm
+Thread 0: 这是重写initial value后的default initial value
+Thread 0: 这是Thread 0修改后的value
+Thread 1: 这是重写initial value后的default initial value
+Thread 2: 这是重写initial value后的default initial value
+Thread 1: 这是Thread 1修改后的value
+Thread 2: 这是Thread 2修改后的value
 ```
 
-从输出中可以看出，Thread-0 已经改变了 formatter 的值，其他线程也一样。
-
-上面有一段代码用到了创建 `ThreadLocal` 变量的那段代码用到了 Java8 的知识，它等于下面这段代码，如果你写了下面这段代码的话，IDEA 会提示你转换为 Java8 的格式(IDEA 真的不错！)。因为 ThreadLocal 类在 Java 8 中扩展，使用一个新的方法`withInitial()`，将 Supplier 功能接口作为参数。
-
-```java
-private static final ThreadLocal<SimpleDateFormat> formatter = new ThreadLocal<SimpleDateFormat>(){
-    @Override
-    protected SimpleDateFormat initialValue(){
-        return new SimpleDateFormat("yyyyMMdd HHmm");
-    }
-};
-```
+从输出中可以看出，每个thread都改变了 threadNo中各自value 的值.
 
 ## ThreadLocal 原理
 
@@ -813,7 +811,9 @@ public class Thread implements Runnable {
 }
 ```
 
-从上面`Thread`类 源代码可以看出`Thread` 类中有一个 `threadLocals` 和 一个 `inheritableThreadLocals` 变量，它们都是 `ThreadLocalMap` 类型的变量,我们可以把 `ThreadLocalMap` 理解为`ThreadLocal` 类实现的定制化的 `HashMap`。默认情况下这两个变量都是 null，只有当前线程调用 `ThreadLocal` 类的 `set`或`get`方法时才创建它们，实际上调用这两个方法的时候，我们调用的是`ThreadLocalMap`类对应的 `get()`、`set()`方法。
+从上面`Thread`类 源代码可以看出`Thread` 类中有一个**map类型**的`threadLocals` 和 一个**map类型**的 `inheritableThreadLocals` 变量，它们都是 `ThreadLocalMap` 类型的变量,我们可以把 `ThreadLocalMap` 理解为`ThreadLocal` 类实现的定制化的 `HashMap`。默认情况下这两个变量都是 null，只有当前线程调用 `ThreadLocal` 类的 `set`或`get`方法时才创建它们，实际上调用这两个方法的时候，我们调用的是`ThreadLocalMap`类对应的 `get()`、`set()`方法。
+
+InheritableThreadLocal类是ThreadLocal类的子类。ThreadLocal中每个线程拥有它自己的值，与ThreadLocal不同的是，InheritableThreadLocal允许一个线程以及该线程创建的所有子线程都可以访问它保存的值。
 
 ### `ThreadLocal`类的`set()`方法
 
@@ -841,7 +841,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 }
 ```
 
-比如我们在同一个线程中声明了两个 `ThreadLocal` 对象的话，会使用 `Thread`内部都是使用仅有那个`ThreadLocalMap` 存放数据的，`ThreadLocalMap`的 key 就是 `ThreadLocal`对象，value 就是 `ThreadLocal` 对象调用`set`方法设置的值。
+比如我们在同一个线程中声明了两个 `ThreadLocal` 对象的话， `Thread`内部都是使用仅有的那个`ThreadLocalMap` 存放数据的，`ThreadLocalMap`的 key 就是 `ThreadLocal`对象，value 就是 `ThreadLocal` 对象调用`set`方法设置的值。
 
 ![ThreadLocal数据结构](imgs/threadlocal%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png)
 
@@ -1398,26 +1398,22 @@ AQS 的全称为（`AbstractQueuedSynchronizer`），这个类在`java.util.conc
 
 [![AQS类](https://camo.githubusercontent.com/a0295b9eee9b4b3047aa66b2cc972d4225062c9a618c121053ee4b66a5a1425a/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4151532545372542312542422e706e67)](https://camo.githubusercontent.com/a0295b9eee9b4b3047aa66b2cc972d4225062c9a618c121053ee4b66a5a1425a/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4151532545372542312542422e706e67)
 
-AQS 是一个用来构建锁和同步器的框架，使用 AQS 能简单且高效地构造出应用广泛的大量的同步器，比如我们提到的 `ReentrantLock`，`Semaphore`，其他的诸如 `ReentrantReadWriteLock`，`SynchronousQueue`，`FutureTask` 等等皆是基于 AQS 的。当然，我们自己也能利用 AQS 非常轻松容易地构造出符合我们自己需求的同步器。
+AQS 是构建锁或者其他同步组件的基础框架（如 ReentrantLock、ReentrantReadWriteLock、Semaphore 等）, 包含了实现同步器的细节（获取同步状态、FIFO 同步队列）。AQS 的主要使用方式是继承，子类通过继承同步器，并实现它的抽象方法来管理同步状态。维护一个同步状态 state。当 state > 0时，表示已经获取了锁；当state = 0 时，表示释放了锁。AQS 通过内置的 FIFO 同步队列来完成资源获取线程的排队工作：
 
 ## AQS 原理分析
-
-> 在面试中被问到并发知识的时候，大多都会被问到“请你说一下自己对于 AQS 原理的理解”。下面给大家一个示例供大家参考
-
-### AQS 原理概览
 
 AQS 核心思想是，
 
 - 如果被请求的**共享资源空闲**，则将**当前请求资源的线程**设置为**有效的工作线程**，并且将**共享资源**设置为**锁定状态**。
 - 如果被请求的**共享资源被占用**，那么就需要一套**线程阻塞等待**以及**被唤醒时锁分配的机制**，这个机制 AQS 是用 **CLH** 队列锁实现的，即将**暂时获取不到锁的线程加入到队列中**。
 
-> CLH(Craig,Landin,and Hagersten)队列是一个虚拟的**双向队列**（虚拟的双向队列即**不存在队列实例，仅存在结点之间的关联关系**）。AQS 是将每条请求共享资源的**线程**封装成一个 **CLH 锁队列**的一个**结点**（Node）来实现锁的分配。
+> **CLH**(Craig,Landin,and Hagersten)队列是一个虚拟的**双向队列**（虚拟的双向队列即**不存在队列实例，仅存在结点之间的关联关系**）。AQS 是将每条请求共享资源的**线程**封装成一个 **CLH 锁队列**的一个**结点**（Node）来实现锁的分配。
 
 看个 AQS(AbstractQueuedSynchronizer)原理图：
 
 [![AQS原理图](https://camo.githubusercontent.com/ac2a92061ff7f1176d98be55181fe6615a7137bab4337540f96fc5c2056ba652/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4151532545352538452539462545372539302538362545352539422542452e706e67)](https://camo.githubusercontent.com/ac2a92061ff7f1176d98be55181fe6615a7137bab4337540f96fc5c2056ba652/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4151532545352538452539462545372539302538362545352539422542452e706e67)
 
-AQS 使用一个 int 成员变量来表示同步状态，通过内置的 FIFO 队列来完成获取资源线程的排队工作。AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。
+AQS 使用一个 **int** 成员变量**state**来表示**同步状态**，通过**内置的 FIFO 队列**来完成**获取资源线程的排队工作**。AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。
 
 ```java
 private volatile int state;//共享变量，使用volatile修饰保证线程可见性
@@ -1440,26 +1436,21 @@ protected final boolean compareAndSetState(int expect, int update) {
 }
 ```
 
-#### 6.2.2. AQS 对资源的共享方式
+### AQS 对资源的共享方式
 
 **AQS 定义两种资源共享方式**
 
-- Exclusive
+- **Exclusive**（独占）：只有一个线程能执行，如ReentrantLock又可分为公平锁和非公平锁：
+- 公平锁：按照线程在队列中的**排队顺序**，**先到者先拿到锁FIFO**
+    - 非公平锁：当线程要获取锁时，**无视队列顺序直接去抢锁**，谁抢到就是谁的
 
-    （独占）：只有一个线程能执行，如ReentrantLock
-
-    ​	又可分为公平锁和非公平锁：
-
-    - 公平锁：按照线程在队列中的排队顺序，先到者先拿到锁
-    - 非公平锁：当线程要获取锁时，无视队列顺序直接去抢锁，谁抢到就是谁的
-
-- **Share**（共享）：多个线程可同时执行，如` CountDownLatch`、`Semaphore`、 `CyclicBarrier`、`ReadWriteLock` 我们都会在后面讲到。
+- **Share**（共享）：多个线程可同时执行，如` CountDownLatch`、`Semaphore`、 `CyclicBarrier`、`ReadWriteLock`,
 
 `ReentrantReadWriteLock` 可以看成是组合式，因为 `ReentrantReadWriteLock` 也就是读写锁允许多个线程同时对某一资源进行读。
 
 不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS 已经在顶层实现好了。
 
-#### 6.2.3. AQS 底层使用了模板方法模式
+### AQS 底层使用了模板方法模式
 
 同步器的设计是基于模板方法模式的，如果需要自定义同步器一般的方式是这样（模板方法模式很经典的一个应用）：
 
@@ -1470,7 +1461,7 @@ protected final boolean compareAndSetState(int expect, int update) {
 
 **AQS 使用了模板方法模式，自定义同步器时需要重写下面几个 AQS 提供的模板方法：**
 
-```
+```java
 isHeldExclusively()//该线程是否正在独占资源。只有用到condition才需要去实现它。
 tryAcquire(int)//独占方式。尝试获取资源，成功则返回true，失败则返回false。
 tryRelease(int)//独占方式。尝试释放资源，成功则返回true，失败则返回false。
@@ -1478,11 +1469,11 @@ tryAcquireShared(int)//共享方式。尝试获取资源。负数表示失败；
 tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true，失败则返回false。
 ```
 
-默认情况下，每个方法都抛出 `UnsupportedOperationException`。 这些方法的实现必须是内部线程安全的，并且通常应该简短而不是阻塞。AQS 类中的其他方法都是 final ，所以无法被其他类使用，只有这几个方法可以被其他类使用。
+默认情况下，每个方法都抛出 `UnsupportedOperationException`。 这些**方法的实现必须是内部线程安全的**，并且通常应该中断而不是阻塞。AQS 类中的其他方法都是 final ，所以无法被其他类使用，只有这几个方法可以被其他类使用。
 
-以 ReentrantLock 为例，state 初始化为 0，表示未锁定状态。A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1。此后，其他线程再 tryAcquire()时就会失败，直到 A 线程 unlock()到 state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A 线程自己是可以重复获取此锁的（state 会累加），这就是可重入的概念。但要注意，获取多少次就要释放多少次，这样才能保证 state 是能回到零态的。
+以 ReentrantLock 为例，state 初始化为 0，表示未锁定状态。**A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1**。此后，**其他线程再 tryAcquire()时就会失败**，**直到 A 线程 unlock()到 state=0（即释放锁）为止**，其它线程才有机会获取该锁。当然，**释放锁之前，A 线程自己是可以重复获取此锁的（state 会累加）**，这就是**可重入**的概念。但要注意，获取多少次就要释放多少次，这样才能保证 state 是能回到零态的。
 
-再以 `CountDownLatch` 以例，任务分为 N 个子线程去执行，state 也初始化为 N（注意 N 要与线程个数一致）。这 N 个子线程是并行执行的，每个子线程执行完后` countDown()` 一次，state 会 CAS(Compare and Swap)减 1。等到所有子线程都执行完后(即 state=0)，会 unpark()主调用线程，然后主调用线程就会从 `await()` 函数返回，继续后余动作。
+再以 `CountDownLatch` 以例，**任务分为 N 个子线程去执行**，**state 也初始化为 N**（注意 N 要与线程个数一致）。这 N 个子线程是**并行执行**的，每个**子线程执行完后` countDown()` 一次，state 会 CAS4原子de减 1**。等到所有子线程都执行完后(即 **state=0**)，会 **unpark()主调用线程**，然后**主调用线程就会从 `await()` 函数返回，继续后余动作**。
 
 一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现`tryAcquire-tryRelease`、`tryAcquireShared-tryReleaseShared`中的一种即可。但 AQS 也支持自定义同步器同时实现独占和共享两种方式，如`ReentrantReadWriteLock`。
 
@@ -1491,19 +1482,19 @@ tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true�
 - https://www.cnblogs.com/waterystone/p/4920797.html
 - https://www.cnblogs.com/chengxiao/archive/2017/07/24/7141160.html
 
-### 6.3. AQS 组件总结
+### AQS 组件总结
 
-- **`Semaphore`(信号量)-允许多个线程同时访问：** `synchronized` 和 `ReentrantLock` 都是一次只允许一个线程访问某个资源，`Semaphore`(信号量)可以指定多个线程同时访问某个资源。
+- **`Semaphore`(信号量)-允许多个线程同时访问：** `synchronized` 和 `ReentrantLock` 都是一次只允许一个线程访问某个资源，**`Semaphore`(信号量)**可以**指定多个线程同时访问某个资源。**
 - **`CountDownLatch `（倒计时器）：** `CountDownLatch` 是一个同步工具类，用来协调多个线程之间的同步。这个工具通常用来控制线程等待，它可以让某一个线程等待直到倒计时结束，再开始执行。
 - **`CyclicBarrier`(循环栅栏)：** `CyclicBarrier` 和 `CountDownLatch` 非常类似，它也可以实现线程间的技术等待，但是它的功能比 `CountDownLatch` 更加复杂和强大。主要应用场景和 `CountDownLatch` 类似。`CyclicBarrier` 的字面意思是可循环使用（`Cyclic`）的屏障（`Barrier`）。它要做的事情是，让一组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。`CyclicBarrier` 默认的构造方法是 `CyclicBarrier(int parties)`，其参数表示屏障拦截的线程数量，每个线程调用 `await()` 方法告诉 `CyclicBarrier` 我已经到达了屏障，然后当前线程被阻塞。
 
-### 6.4. 用过 CountDownLatch 么？什么场景下用的？
+### 用过 CountDownLatch 么？什么场景下用的？
 
 `CountDownLatch` 的作用就是 允许 count 个线程阻塞在一个地方，直至所有线程的任务都执行完毕。之前在项目中，有一个使用多线程读取多个文件处理的场景，我用到了 `CountDownLatch` 。具体场景是下面这样的：
 
 我们要读取处理 6 个文件，这 6 个任务都是没有执行顺序依赖的任务，但是我们需要返回给用户的时候将这几个文件的处理的结果进行统计整理。
 
-为此我们定义了一个线程池和 count 为 6 的`CountDownLatch`对象 。使用线程池处理读取任务，每一个线程处理完之后就将 count-1，调用`CountDownLatch`对象的 `await()`方法，直到所有文件读取完之后，才会接着执行后面的逻辑。
+为此我们定义了一个**线程池和 count 为 6 的`CountDownLatch`对象** 。**使用线程池处理读取任务，每一个线程处理完之后就将 count-1**，**调用`CountDownLatch`对象的 `await()`方法，直到所有文件读取完之后，才会接着执行后面的逻辑。**
 
 伪代码是下面这样的：
 
@@ -1542,7 +1533,7 @@ public class CountDownLatchExample1 {
 
 可以使用 `CompletableFuture` 类来改进！Java8 的 `CompletableFuture` 提供了很多对多线程友好的方法，使用它可以很方便地为我们编写多线程程序，什么异步、串行、并行或者等待所有线程执行完任务什么的都非常方便。
 
-```
+```java
 CompletableFuture<Void> task1 =
     CompletableFuture.supplyAsync(()->{
         //自定义业务操作
@@ -1565,7 +1556,7 @@ System.out.println("all done. ");
 
 上面的代码还可以接续优化，当任务过多的时候，把每一个 task 都列出来不太现实，可以考虑通过循环来添加任务。
 
-```
+```java
 //文件夹位置
 List<String> filePaths = Arrays.asList(...)
 // 异步处理所有文件
@@ -1577,3 +1568,4 @@ CompletableFuture<Void> allFutures = CompletableFuture.allOf(
     fileFutures.toArray(new CompletableFuture[fileFutures.size()])
 );
 ```
+

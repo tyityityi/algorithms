@@ -1666,7 +1666,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     static final int UNTREEIFY_THRESHOLD = 6;
     // 桶中结构转化为红黑树对应的table的最小大小
     static final int MIN_TREEIFY_CAPACITY = 64;
-    // 存储元素的链表数组，总是2的幂次倍
+    // 存储元素的链表数组(实现了Entry<K,>接口)，总是2的幂次倍
     transient Node<k,v>[] table;
     // 存放具体元素的集合
     transient Set<map.entry<k,v>> entrySet;
@@ -1681,11 +1681,11 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 }
 ```
 
-#### **loadFactor 加载因子**
+#### **loadFactor 负载因子**
 
-- loadFactor 加载因子是控制数组存放数据的疏密程度，loadFactor 越趋近于 1，那么 数组中存放的数据(entry)也就越多，也就越密，也就是会让链表的长度增加；loadFactor 越小，也就是趋近于 0，数组中存放的数据(entry)也就越少，也就越稀疏。
+- loadFactor 负载因子是控制数组存放数据的疏密程度，loadFactor 越趋近于 1，那么 数组中存放的数据(entry)也就越多，也就越密，也就是会让链表的长度增加；loadFactor 越小，也就是趋近于 0，数组中存放的数据(entry)也就越少，也就越稀疏。
 
-- **loadFactor 太大导致查找元素效率低；太小导致数组的利用率低，存放的数据会很分散。loadFactor 的默认值为 0.75f 是官方给出的一个比较好的临界值**。
+- l**oadFactor 太大导致查找元素效率低；太小导致数组的利用率低，存放的数据会很分散。loadFactor 的默认值为 0.75f 是因为0.75符合泊松分布, 存放的数据会尽量分散**
 
 #### **threshold**
 
@@ -1693,7 +1693,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 
 ### **Node 链表节点类源码:**
 
-Node自带链表属性；
+**Node是对Entry的一个实现**, Node自带链表属性；
 
 HashMap的底层结构之一为**Node数组**（即**数组+链表**）
 
@@ -1838,7 +1838,9 @@ final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
   }
 ```
 
-^异或: 相同为1,不同为0;
+**^异或: 相同为1,不同为0;**
+
+比如一个hashCode a=1110 1110,  将其无符号右移4位得到a' = 0000 1110, hash = a^a' = 0001 1111, 这样做会**保留高位的信息**,更能体现hashcode的特征; 计算hash&(length-1)得到槽位slot的时候, 也会降低冲突的概率;
 
 #### 为什么要无符号右移16位？
 
@@ -1946,7 +1948,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 
 ### resize 方法(扩容核心方法)
 
-进行扩容，会伴随着一次重新 hash 分配，并且会遍历 hash 表中所有的元素，是非常耗时的。在编写程序中，要尽量避免 resize。
+进行扩容，会伴随着一次重新 hash 分配(rehash()，并且会遍历 hash 表中所有的元素，是非常耗时的。在编写程序中，要尽量避免 resize。
 
 ```java
 final Node<K,V>[] resize() {
@@ -3109,6 +3111,12 @@ static class Segment<K,V> extends ReentrantLock implements Serializable {
 
 `synchronized` 只锁定当前链表或红黑二叉树的首节点，这样只要 hash 不冲突，就不会产生并发，效率又提升 N 倍。 
 
+- table 中存放 Node 节点数据，默认 Node 数据大小为 16，扩容大小总是 2^N。
+- 为了保证可见性，Node 节点中的 val 和 next 节点都用 volatile 修饰。
+- 当链表长度大于 8 时，会转换成红黑树，节点会被包装成 TreeNode放在TreeBin 中。
+- put()：1. 计算键所对应的 hash 值；2. 如果哈希表还未初始化，调用 initTable() 初始化，否则在 table 中找到 index 位置，并通过 **CAS 添加节点**。如果链表节点数目超过 8，则将链表转换为红黑树。如果节点总数超过，则进行扩容操作。
+- get()：无需加锁，直接根据 key 的 hash 值遍历 node。
+
 
 
 
@@ -3304,6 +3312,8 @@ Output：
 
 ## HaspMap面试
 
+![HashMap如何确定元素位置](imgs/20181102214046362.png)
+
 ### 1、Hash 概念
 
 把任意长度的输入转化为固定长度的输出。
@@ -3332,7 +3342,7 @@ Output：
 
 阈值=16*0.75=12
 
-### 4、HashMap中散列表什么时候创建？
+### 4、HashMap中散列表(table数组)什么时候创建？
 
 散列表为**懒加载**机制，在**第一次put**时创建。
 
@@ -3368,9 +3378,7 @@ table.length-1转化为二进制：15–>1111 31–>1 1111
 
 主要是优化hash算法
 
-原因：**数组长度**一般不会很大，table.length-1的长度**不会超过16位**
-
-而**高16位就会被浪费**， 所以采用这种方式。
+原因：**数组长度**一般不会很大，table.length-1的长度**不会超过16位**, 而**高16位就会被浪费**， 所以采用这种方式。
 
 ### 8、hashMap put写数据的流程
 
@@ -3474,52 +3482,106 @@ Trenode中还保留着next字段，其实它内部还维持着一个链表，只
 
 红黑树一样也要拆分出的高低位链表, 长度如果小于等于6,转为普通的链表放到扩容后的新表, 长度大于6还是要用红黑树存储
 
+### 13 重写equals时也要重写hashcode
+
+使用的key从逻辑上讲是等值的（通过equals比较是相等的），但由于没有重写hashCode方法，所以put操作时，key(hashcode1)–>hash–>indexFor–>最终索引位置 ，而通过key取出value的时候 key(hashcode1)–>hash–>indexFor–>最终索引位置，由于hashcode1不等于hashcode2，**导致没有定位到一个数组位置而返回逻辑上错误的值null**（也有可能碰巧定位到一个数组位置，但是也会判断其entry的hash值是否相等，上面get方法中有提到。）
+
 ## ThreadLocal面试
 
 ### 1. ThreadLocal的理解
 
-每一个线程都有自己的专属本地变量, 提供各个线程独有的局部变量, 多个线程之间互不干扰, 一般会重写initialValue()方法来赋值
+每一个线程都有自己的专属局部变量, 提供各个线程独有的局部变量, 多个线程之间互不干扰, 一般会重写initialValue()方法来赋值;
 
 每个线程第一次访问get()方法的时候会给线程赋值, 用重写的initialValue()方法分配数据
 
 ### 2、ThreadLocal的原理是什么(1.8)？
 
-每个线程对应的Thread对象内部有一个threadLocals字段, 这个字段会指向ThreadLocalMap
+每个线程对应的Thread对象内部有一个ThreadLocalMap类的threadLocals字段,
 
 ####     追问1：ThreadLocalMap内存储的是什么？
 
-当前线程与其对应的ThreadLocal对象关联的数据
+当前线程与其对应的ThreadLocal(map的key)对象关联的数据
 
 ####     追问2：ThreadLocal它是怎样做到线程之间互不干扰的呢？
 
-每个线程有一个独有的ThreadLocalMap存储数据,线程访问某个ThreadLocal对象的get方法的时候会检测当前map内是否有key为ThreadLocal对象的Entry数据
+每个**线程**有一个独有的ThreadLocalMap(即threadLocals)存储数据,线程访问某个ThreadLocal对象的get方法的时候会检测当前map内是否有key为ThreadLocal(即threadLocals)对象的Entry数据, 若果没有的话会创建一个Entry存在map里
 
 ####     追问3：老版本JDK的ThreadLocal是怎么设计的呢？
 
+老版本在ThreadLocal中维护一个大map,所有线程变量都会维护在这个map里
+
 ### 3、JDK8 版本的ThreadLocal设计有什么优势相比更早之前的老版本（不指jdk1.7，比jdk1.7还要老，可以认为是ThreadLocal第一版）？
+
+1.7大map不利于维护
+
+1.8的每个线程维护自己的数据,当线程被销毁的时候对应的小map就会在下一次GC的时候被回收. 
+
+但是map中Entry存的key(ThreadLocal类的实例)是一个弱引用,即使ThreadLocal对象被回收, 这个key也不会被回收(弱引用 不参与root算法), 这个key会变为null,引发**内存泄漏**的问题. 所以**使用完 `ThreadLocal`方法后 最好手动调用`remove()`方法** (**ThreadLocalMap在调用 `set()`、`get()`、`remove()` 方法的时候，会清理掉 key 为 null 的记录。**)
 
 ### 4、ThreadLocalMap 存放数据时，数据的hash值是从Object.hashCode()拿到的，还是其它方式？为什么？
 
+重写的. 采用黄金分割数来分割. 有一个魔法值..目的是为了让散列更均匀
+
 ### 5、为什么ThreadLocal选择自定义一款Map而没有沿用JDK中的HashMap？
+
+ThreadLocalMap的get,set,remove方法有清理过期数据的功能, 比如清楚key为null的数据, 提供程序员手动解决内存泄漏问题的能力
 
 ### 6、每个线程的 ThreadLocalMap对象 是什么时候创建的呢？
 
+延迟初始化, 在第一次调用get或set的时候会检测当前线程是否已经绑定ThreadLocalMap, 没有的话会先创建, 在线程的生命周期内ThreadLocalMap只会初始化一次
+
 ### 7、ThreadLocalMap 底层存储数据的数组长度 初始化是多少？
+
+容量=16
 
 ####      追问1：这个数组大小为什么必须为 2的次方数？
 
+​					方便寻址,和hashmap一样,按位与&位运算
+
 ####      追问2：ThreadLocalMap的扩容阈值是多少呢？
+
+​					当前Entry**数组长度**的2/3
 
 ####      追问3：ThreadLocalMap达到扩容阈值一定会扩容么？
 
+​					不会, 它会先rehash一次, 全量扫描整个散列表, 把过期数据给清理掉, 清理完如果数据仍然达到**扩容阈值的3/4**(即数组长度的2/3的3/4), 才会进行扩容
+
 ####      追问4：扩容算法 你简单说一说。
+
+​					创建一个新的数组,长度为老数组的两倍. 迭代老数组,将数据重新按照hash算法放入新的数组里, 更新ThreadLocalMap内部的的散列表引用指向新数组. 扩容之后还会计算下次出发扩容的阈值
 
 ### 8、ThreadLocalMap对象的 get逻辑，你说下。
 
+get的时候根据传入的ThreadLocal对象的hash值按位与(length-1)得到数组中的下标值slot, 如果没有命中说明发生过哈希冲突,但是ThreadLocalMap处理哈希冲突的策略是线性向后找到一个合适的位置去写数据,即开放寻址法, 继续向后查找直到命中或者碰到null就结束.
+
 ####     追问1：假设get首次未命中，向下迭代查找时，碰到过期数据了，怎么处理？
+
+过期数据,即key指向的ThreadLocal对象被gc之后,key是弱引用, key.get()==null 则此条数据为过期数据;
+
+碰到过期数据会触发**探测式过期数据回收**逻辑: 从当前桶位向后迭代, 碰到key==null, value!=null的Entry置为null, 直到Entry为null(key为null, value也为null)为止
 
 ####     追问2：探测式清理过期数据，向下迭代过程中碰到正常数据，怎么处理？
 
+如果碰到正常数据,会根据他的key重新计算出来一个index, 看index是否等于当前位置
+
+- 不等于的话可能是因为发生过哈希冲突, 需要rehash重新寻找合适的位置(还是开放寻址法).
+
+- 等于的话不处理(可以认为写入的时候没有发生哈希冲突), 
+
 ### 9、ThreadLocalMap set数据流程，大体说一下。
 
-####     追问1：set数据时碰到过期数据了，需要做替换逻辑，这个替换逻辑是怎么做的？
+```java
+1、根据key计算slot槽位下标,如果这个slot为null, 直接添加在相应位置. 
+2、若当前slot不为null:
+3、若是Entry已经存在并且key等于传入的key，那么这时候直接给这个Entry赋新的value值(覆盖)
+4、若是Entry存在，但是key为null(过期数据)，则调用replaceStaleEntry来替换这个key为空的Entry
+5、若Entry存在,key不为null也不与当前要set的key相等,则不断循环检测，直到遇到Entry为null的地方，这时候要是还没在循环过程中return，那么就在这个null的位置新建一个Entry，并且插入，同时size增加1
+6、调用cleanSomeSlots，清理key为null的Entry，最后返回是否清理了Entry，接下来再判断sz 是否= thresgold达到了rehash的条件，达到的话就会调用rehash函数执行一次全表的扫描清理	
+```
+####     追问1：上面的4, set数据时碰到过期数据了，需要做替换逻辑，这个替换逻辑是怎么做的？
+
+以当前位置的下一个桶位开始向后查找,直到碰到key为null或者key一致才会停止:
+
+- 碰到key一致, set的数据直接更新到当前这个桶位的Entry,然后让当前的Entry与过期的slot位置进行一次互换???
+
+- 碰到null也没找到key一致, 直接在当前过期桶位重写一个Entry,相当于抹除过期数据.

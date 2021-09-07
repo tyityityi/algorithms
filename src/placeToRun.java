@@ -96,7 +96,7 @@ public class placeToRun {
 //        System.out.println(a);
 
 
-//        Map<Character, Integer> target = new HashMap<>(), window = new HashMap<>();
+        Map<Character, Integer> target = new HashMap<>(), window = new HashMap<>();
 //        int start = -1;
 //        int end = Integer.MAX_VALUE;
 //        System.out.println(end);
