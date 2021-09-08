@@ -3585,3 +3585,41 @@ get的时候根据传入的ThreadLocal对象的hash值按位与(length-1)得到�
 - 碰到key一致, set的数据直接更新到当前这个桶位的Entry,然后让当前的Entry与过期的slot位置进行一次互换???
 
 - 碰到null也没找到key一致, 直接在当前过期桶位重写一个Entry,相当于抹除过期数据.
+
+### 10 ThreadLocal内存泄漏
+
+Map中的key为一个threadlocal实例. 这个Map的**弱引用只是针对****key**. 每个**key**都弱引用指向**threadlocal**. 当把threadlocal实例置为**null**以后,没有任何强引用指向threadlocal实例,所以threadlocal将会被gc回收. 但是,我们的**value****却不能回收**,因为存在一条从current thread连接过来的**强引用**. 只有当前thread结束以后, current thread就不会存在栈中,强引用断开, Current Thread, Map, value将全部被GC回收.
+
+什么是弱引用？
+
+\1.   Key使用强引用：引用ThreadLocal的对象被回收了，ThreadLocal的引用ThreadLocalMap的Key为强引用并没有被回收，如果不手动回收的话，ThreadLocal将不会回收，那么，将导致内存泄漏。
+
+\2.   Key使用弱引用：引用的ThreadLocal的对象被回收了，**ThreadLocal****的引用ThreadLocalMap****的Key****为弱引用，如果内存回收，那么将ThreadLocalMap****的Key****将会被回收，ThreadLocal****也将被回收。value****在ThreadLocalMap****调用get****、set****、remove****的时候就会被清除**。
+
+\3.   比较两种情况，我们可以发现：由于ThreadLocalMap的生命周期跟Thread一样长，如果都没有手动删除对应key，都会导致内存泄漏，但是使用弱引用可以多一层保障：**弱引用****ThreadLocal****不会内存泄漏，对应的value****在下一次ThreadLocalMap****调用set,get,remove****的时候都会直接或间接调用一个** **expungeStaleEntry() 方法，这个方法会将key为null的 Entry 删除，从而避免内存泄漏。**
+
+但是！
+
+ThreadLocalMap使用ThreadLocal对象作为弱引用，当垃圾回收的时候，ThreadLocalMap中Key将会被回收，也就是将Key设置为null的Entry。**如果线程****迟迟****无法结束，也就是ThreadLocal****对象将一直不会回收，然后使用线程池，这个线程结束，线程放回线程池中不销毁，这个线程一直不被使用，或者分配使用了又不再调用****get,set方法，那么这个期间就会发生真正的内存泄露。 回顾到上面存在很多线程+TheradLocal****，那么也将导致内存泄漏。(****内存泄露的重点)**
+
+ 
+
+ 
+
+ 
+
+问题：
+
+\1.   当ThreadLocal存储很多Key为null的Entry的时候，而不再去调用remove、get、set方法，那么将导致内存泄漏。
+
+\2.   当使用static ThreadLocal的时候，延长ThreadLocal的生命周期，那也可能导致内存泄漏。因为，static变量在类未加载的时候，它就已经加载，当线程结束的时候，static变量不一定会回收。那么，比起普通成员变量使用的时候才加载，static的生命周期加长将更容易导致内存泄漏危机。
+
+   每个thread中都存在一个map, map的类型是ThreadLocal.ThreadLocalMap. 
+
+　　
+
+内存泄漏解决方法：
+
+**1.**   **每次使用完****ThreadLocal，都调用它的remove()方法，清除数据。**
+
+**2.**  **在使用线程池的情况下，没有及时清理****ThreadLocal，不仅是内存泄漏的问题，更严重的是可能导致业务逻辑出现问题。所以，使用ThreadLocal就跟加锁完要解锁一样，用完就清理。**
