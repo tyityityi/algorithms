@@ -8,6 +8,10 @@ public class ListNode {
         val = x;
     }
 
+    public int getVal(){
+        return this.val;
+    }
+
     private static void printList(ListNode head){
         StringBuilder sb = new StringBuilder();
         while(head!=null){

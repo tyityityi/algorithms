@@ -18,6 +18,8 @@ Java 语言既具有编译型语言的特征，也具有解释型语言的特征
 
 ### JVM JDK JRE
 
+<img src="imgs/image-20210909101620989.png" alt="image-20210909101620989" style="width:23%;" />
+
 #### **JDK** 
 
 Java Development Kit 缩写，包括 **JRE**+编译器（javac）+工具（如 javadoc 和 jdb）。能**创建**和**编译**程序。
@@ -909,6 +911,8 @@ Class alunbarClass2 = o.getClass();
 ```
 
 #### **4.通过类加载器`xxxClassLoader.loadClass()`传入类路径获取:**
+
+就是JVM里的类加载器
 
 ```java
 Class clazz = ClassLoader.loadClass("cn.javaguide.TargetObject");

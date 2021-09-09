@@ -1,8 +1,13 @@
+import domain.ListNode;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public class ThreadLocalExample implements Runnable{
+
+
+    ListNode a = new ListNode(2);
 
     private static final ThreadLocal threadNo = new ThreadLocal(){
         protected String initialValue(){
@@ -24,6 +29,7 @@ public class ThreadLocalExample implements Runnable{
         System.out.println("Thread "+Thread.currentThread().getName()+": "+threadNo.get());
         try {
             Thread.sleep(new Random().nextInt(1000));
+            int val = a.getVal();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
