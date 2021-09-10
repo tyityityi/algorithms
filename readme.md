@@ -64,7 +64,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [MySQL](./数据库/数据库(mysql).md)
 
-
+[Redis](./数据库./Redis.md)
 
 ## Java
 
@@ -74,7 +74,9 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [并发](./Java/Java并发.md)
 
-[JVM](./Java/JVM.md)
+### [JVM](./Java/JVM.md)
+
+### [Spring](./Java/Spring.md)
 
 ## 设计模式
 
