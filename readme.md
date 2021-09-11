@@ -64,7 +64,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [MySQL](./数据库/数据库(mysql).md)
 
-[Redis](./数据库./Redis.md)
+### [Redis](./数据库./Redis.md)
 
 ## Java
 
