@@ -642,7 +642,7 @@ protected void finalize() throws Throwable { }//实例被垃圾回收器回收�
 
 **保证健壮性（有异常程序会继续执行，不会崩溃）**
 
-<img src="imgs/throwable.png" alt="throwable" style="width:60%;" />
+<img src="../imgs/throwable.png" alt="throwable" style="width:60%;" />
 
 **Throwable** 类有两个重要的子类 **Exception**（**异常**）和 **Error**（**错误**）。**Exception** 能被程序本身处理(**try-catch**)， **Error** 是**无法处理**的(只能尽量避免)。
 
@@ -660,7 +660,7 @@ protected void finalize() throws Throwable { }//实例被垃圾回收器回收�
 
 - **不受检查异常/非运行时异常：Java 代码在编译过程中，不处理不受检查异常也可以正常通过编译。**例如：
 
-    <img src="imgs/image-20210804175923633.png" alt="image-20210804175923633" style="width:30%;" />
+    <img src="../imgs/image-20210804175923633.png" alt="image-20210804175923633" style="width:30%;" />
 
 ### **Throwable** **类常用方法**
 

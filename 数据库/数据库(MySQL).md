@@ -113,7 +113,7 @@ https://www.cnblogs.com/yousheng/p/12944218.html
 
     采用一致性读取，同事务中的每次读取都取第一次读的快照。不会发生不可重复读. 
 
-    对于 locking reads，UPDATE，DELETE ，其加锁策略取决于**是否是唯一索引 ****唯一条件查询**
+    对于 locking reads，UPDATE，DELETE ，其加锁策略取决于**是否是唯一索引唯一条件查询**
 
     - **唯一索引配合唯一查询条件**，引擎只**锁定那条索引**记录，**不锁间隙**
     - 其他场景，引擎使用**Gap Lock 或 Next-Record Lock的间隙锁锁定扫描的索引范围**，以阻止其他事务插入新行到该间隙
