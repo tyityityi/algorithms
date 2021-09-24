@@ -1,11 +1,12 @@
-public class twoThreadsPrint0to10 {
+public class TwoThreadsPrint0to10 {
 
     private static int count = 0;
     private static final Object object = new Object();
 
     public static void main(String[] args) {
-        new Thread(new printer(), "偶数线程，").start();
-        new Thread(new printer(), "奇数线程，").start();
+        new Thread(new printer(), "线程1，").start();
+        new Thread(new printer(), "线程2，").start();
+
     }
 
     static class printer implements Runnable {

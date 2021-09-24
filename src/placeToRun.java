@@ -1,6 +1,7 @@
 import algorithms.DFS;
 import algorithms.hashmap;
 import algorithms.lookup;
+import domain.ListNode;
 import sorting.sortingAlgorithms;
 import algorithms.recursive;
 
@@ -119,11 +120,57 @@ public class placeToRun {
 //        char[] chars = s.toCharArray();
 //        for(int i=0; i<chars.length; i++)
 //            System.out.println(chars[i]);
-        List<Long> list = new ArrayList<>();
-        list.add(1l);
-        list.add(2l);
-        list.remove(0);
-        list.add(5, 5l);
-        System.out.println(list.get(5));
+//        List<Long> list = new ArrayList<>();
+//        list.add(1l);
+//        list.add(2l);
+//        list.remove(0);
+//        list.add(5, 5l);
+//        System.out.println(list.get(5));
+        ListNode l1 = new ListNode(2);
+        l1.next = new ListNode(4);
+        l1.next.next = new ListNode(3);
+        ListNode l2 = new ListNode(5);
+        l2.next = new ListNode(6);
+        l2.next.next = new ListNode(4);
+        ListNode res = addTwoNumbers(l1,l2);
+        while(res!=null){
+            System.out.println(res.val);
+            res = res.next;
+        }
+
+
+
+    }
+    private static ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        int jinweiFlag = 0;
+        ListNode dummy = new ListNode();
+        ListNode curr = new ListNode();
+        dummy.next = curr;
+        while(l1!=null && l2!=null){
+            if(l1.val+l2.val<10){
+                curr.val = l1.val+l2.val + jinweiFlag==0?0:1;
+                curr.next = new ListNode();;
+                curr = curr.next;
+                jinweiFlag = 0;
+            } else {
+                curr.val = l1.val+l2.val - 10 + jinweiFlag==0?0:1;
+                curr.next = new ListNode();;
+                curr = curr.next;
+                jinweiFlag = 1;
+            }
+        }
+        if(l1!=null){
+            while(l1!=null){
+                curr.val = l1.val;
+                l1 = l1.next;
+            }
+        }
+        if(l2!=null){
+            while(l2!=null){
+                curr.val = l1.val;
+                l2 = l2.next;
+            }
+        }
+        return dummy.next;
     }
 }

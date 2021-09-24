@@ -33,7 +33,7 @@ MyClass myClass = new MyClass();//加载,初始化
 
 3. App ClassLoader：指定的classpath下面的jar包
 
-    自定义的class类 也是app load的
+    自定义的class类 也是app 加载的
 
     ![image-20210909104226363](imgs/image-20210909104226363.png)
 
@@ -327,8 +327,6 @@ JDK 1.8 的时候，方法区（HotSpot 的永久代）被彻底移除了（JDK1
 
 既然运行时常量池是方法区的一部分，自然受到方法区内存的限制，当常量池无法再申请到内存时会抛出 **OutOfMemoryError** 错误。
 
-
-
 > **🐛 修正（参见：[issue747](https://github.com/Snailclimb/JavaGuide/issues/747)，[reference](https://blog.csdn.net/q5706503/article/details/84640762)）** ：
 >
 > 1. **JDK1.7 之前运行时常量池逻辑包含字符串常量池存放在方法区, 此时 hotspot 虚拟机对方法区的实现为永久代**
@@ -345,11 +343,9 @@ JDK1.4 中新加入的 **NIO(New Input/Output) 类**，引入了一种基于**�
 
 **本机直接内存的分配不会受到 Java 堆的限制，但是，既然是内存就会受到本机总内存大小以及处理器寻址空间的限制。**
 
-## 常量池和堆的思考
-
 ### [String s1 = new String("abc");这句话创建了几个字符串对象？](https://snailclimb.gitee.io/javaguide/#/docs/java/jvm/Java内存区域?id=_42-string-s1-new-stringquotabcquot这句话创建了几个字符串对象？)
 
-**将创建 1 或 2 个字符串。如果池中已存在字符串常量“abc”，则只会在堆空间创建一个字符串常量“abc”。如果池中没有字符串常量“abc”，那么它将首先在池中创建，然后在堆空间中创建，因此将创建总共 2 个字符串对象。**
+**将创建 1 或 2 个字符串。如果池中已存在字符串常量“abc”，则只会在堆空间创建一个字符串常量“abc”。如果池中没有字符串常量“abc”，那么它将首先在常量池中创建，然后在堆空间中创建，因此将创建总共 2 个字符串对象。**
 
 **验证：**
 
@@ -364,7 +360,7 @@ System.out.println(s1.equals(s2));// 输出 true
 
 通过上面的介绍我们大概知道了虚拟机的内存情况，下面我们来详细的了解一下 HotSpot 虚拟机在 Java 堆中对象分配、布局和访问的全过程。
 
-### 创建对象的例子: String s = new String("abc");
+### 创建对象的例子:
 
 [先举个例子 5分30秒开始](https://www.bilibili.com/video/BV1AP4y1W7un?p=30):
 
@@ -407,7 +403,7 @@ C2中:
 
 
 
-### 对象的创建步骤
+### 对象的创建步骤 String s = new String("abc");
 
 下图便是 Java 对象的创建过程，我建议最好是能默写出来，并且要掌握每一步在做什么。 ![Java创建对象的过程](imgs/Java%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%BF%87%E7%A8%8B.png)
 

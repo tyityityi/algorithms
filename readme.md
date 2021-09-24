@@ -48,7 +48,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
 ### [笔试题汇总](./算法/笔试题.md)
 
-### [智力题](./算法/智力题.md)
+### [智力题场景题](./算法/智力题场景题.md)
 
 ## 计算机基础
 
@@ -149,7 +149,22 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
     
 
-7. 八股文学习
+7. List转Array
+
+    ```java
+    //方法1,toArray()方法传入参数是泛型T, 但泛型必须是引用类型(Integer),不能是基本类型(int)
+    String[] strs = list.toArray(new String[list.size()]);
+    //方法2
+    for(int i=0; i<list.size(); i++){
+    		strs[i] = list.get(i);
+    }
+    ```
+
+8. ###  RPC框架 vs http请求访问远程服务
+
+    成熟的 RPC框架(Dubbo)还提供好了“**服务自动注册与发现**”、"智能**负载均衡**"、“可视化的**服务治理和运维**”、“运行期**流量调度**”等等功能，这些也算是选择 RPC 进行服务注册和发现的一方面原因吧！
+
+9. 八股文学习
 
     JAVA方面首先得会基础(随便看什么书，培训班教程也可以)，并发的话如果只是应付面试极客时间有一个课程叫做JAVA并发(好像是这么个名字，忘了)，jvm就那本经典的深入理解JAVA虚拟机(重点是内存管理，垃圾回收，常用监测工具，类文件结构，类加载机制)，然后有时间可以看看effective JAVA这本书，可能要很多面试会用到的知识。最后知乎或者博客搜一搜hashMap,concurrenthashMap,ArrayList,LinkedList等到源码分析，有闲心可以自己写一个hashMap,Lru,Lfu(有些面试可能会让你写)
 
