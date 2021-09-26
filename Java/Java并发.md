@@ -81,7 +81,7 @@ public class MultiThread {
 
 先从总体上来说：
 
-- **从计算机底层来说：** 线程可以比作是轻量级的进程，是程序执行的最小单位,**线程间的切换和调度的成本远远小于进程**。另外，多核 CPU 时代意味着多个线程可以**同时运行**，这减少了线程上下文切换的开销。
+- **从计算机底层来说：** 线程可以比作是轻量级的进程，是**程序执行的最小单位**, **线程间的切换和调度的成本远远小于进程**。另外，多核 CPU 时代意味着多个线程可以**同时运行**，这减少了线程上下文切换的开销。
 - **从当代互联网发展趋势来说：** 现在的系统动不动就要求百万级甚至千万级的并发量，而多线程并发编程正是开发高并发系统的基础，利用好多线程机制可以大大提高系统整体的并发能力以及性能。
 
 再深入到计算机底层来探讨：
@@ -115,7 +115,7 @@ Java 线程在运行的**生命周期**中的指定时刻只可能处于下面 6
 
 - 当线程执行 `wait()`方法之后，线程进入 **WAITING（等待）** 状态。进入等待状态的线程需要依靠其他线程的**通知notify**才能够返回到运行状态；
 
-- **TIME_WAITING(超时等待)** 状态相当于在等待状态的基础上增加了**超时限制**，比如通过 `sleep（long millis）`方法或 `wait（long millis）`方法可以将 Java 线程置于 TIMED WAITING 状态。当超时时间到达后 Java 线程将会返回到 RUNNABLE 状态。
+- **TIME_WAITING(超时等待)** 状态相当于在等待状态的基础上增加了**超时限制**，比如通过 `sleep（long millis）`方法或 `wait（long millis）`方法可以将 Java 线程置于 TIMED WAITING 状态。当超时时间到达后 Java 线程将会返回到 **RUNNABLE** 状态。
 - 当线程调用同步方法时，在**没有获取到锁**的情况下，线程将会进入到 **BLOCKED（阻塞）** 状态。
 
 - 线程在执行 Runnable 的`run()`方法之后将会进入到 **TERMINATED（终止）** 状态。
@@ -453,7 +453,7 @@ public class SynchronizedDemo2 {
 
 ## JDK1.6 之后的 synchronized 关键字底层的优化
 
-![preview](imgs/v2-9db4211af1be81785f6cc51a58ae6054_r.jpg)
+<img src="imgs/v2-9db4211af1be81785f6cc51a58ae6054_r.jpg" alt="preview" style="width:100%;" />
 
 JDK1.6 对锁的实现引入了大量的优化，如**偏向锁、轻量级锁、自旋锁、适应性自旋锁、锁消除、锁粗化**等技术来减少锁操作的开销。
 
@@ -521,7 +521,7 @@ JDK1.6 对锁的实现引入了大量的优化，如**偏向锁、轻量级锁�
 | ------------------------------------------ | ---- |
 | 指向互斥量(**重量级锁-底层的mutex**)的指针 | 10   |
 
-GC标记信息 后两位11
+**GC标记信息** 后两位11
 
 | 30bit                 | 2bit |
 | --------------------- | ---- |
@@ -647,9 +647,9 @@ public class Singleton {
 
 使用 **`volatile` 可以禁止 JVM 的指令重排**，**Java线程内存模型确保所有线程看到这个变量的值是一致的**保证在多线程环境下也能正常运行。
 
-### ps: 枚举类型的单例
+上面这种单例模式虽然**满足1懒加载2线程安全**,但是会被**反射破坏, 即通过反射操作可以构建两个不同的实例**,但是这种操作时人为的,可避免的(只要不用反射获取单例就可以); 想不被反射破坏可以使用**枚举类型的单例**
 
-上面这种单例模式虽然**满足1懒加载2线程安全**,但是会被**反射破坏, 即通过反射操作可以构建两个不同的实例**,但是这种操作时人为的,可避免的(只要不用反射获取单例就可以);
+### ps: 枚举类型的单例
 
 解决办法是运用枚举类型构建单例模式: 反射无法获取枚举类型的无参构造函数,因为枚举类型不存在无参构造函数,且编译器无法通过反射来创建枚举类型的对象
 
@@ -678,12 +678,12 @@ public enum Singleton{
 相比`synchronized`，`ReentrantLock`增加了一些高级功能。主要来说主要有三点：
 
 - **等待可中断** : `ReentrantLock`提供了一种能够**中断等待锁的线程**的机制，通过 `lock.lockInterruptibly()` 来实现这个机制。也就是说正在等待的线程可以选择放弃等待，改为处理其他事情。
-- **可实现公平锁** : `ReentrantLock`可以指定是**公平锁还是非公平锁**。而`synchronized`只能是**非公平锁**。所谓的公平锁就是先等待的线程先获得锁。`ReentrantLock`默认情况是非公平的，可以通过 `ReentrantLock`类的`ReentrantLock(boolean fair)`构造方法来制定是否是公平的。
+- **可实现公平锁** : `ReentrantLock`可以指定是**公平锁还是非公平锁**。而`synchronized`只能是**非公平锁**。所谓的**公平锁**就是**先等待的线程先获得锁**。`ReentrantLock`默认情况是非公平的，可以通过 `ReentrantLock`类的`ReentrantLock(boolean fair)`构造方法来制定是否是公平的。
 - **可实现选择性通知（锁可以绑定多个条件）**: 
     - `synchronized`关键字与`wait()`和`notify()`/`notifyAll()`方法相结合可以实现**等待/通知机制**。
     - `ReentrantLock`类当然也可以实现，但是需要借助于`Condition`接口与`newCondition()`方法。
 
-> `Condition`是 JDK1.5 之后才有的，它具有很好的灵活性，比如可以实现多路通知功能也就是在一个`Lock`对象中可以创建多个`Condition`实例（即对象监视器），**线程对象可以注册在指定的`Condition`中，从而可以有选择性的进行线程通知，在调度线程上更加灵活。 在使用`notify()/notifyAll()`方法进行通知时，被通知的线程是由 JVM 选择的，用`ReentrantLock`类结合`Condition`实例可以实现“选择性通知”** ，这个功能非常重要，而且是 Condition 接口默认提供的。而`synchronized`关键字就相当于整个 Lock 对象中只有一个`Condition`实例，所有的线程都注册在它一个身上。如果执行`notifyAll()`方法的话就会通知所有处于等待状态的线程这样会造成很大的效率问题，而`Condition`实例的`signalAll()`方法 只会唤醒注册在该`Condition`实例中的所有等待线程。
+> `Condition`是 JDK1.5 之后才有的，它具有很好的灵活性，比如可以实现多路通知功能, 也就是在一个`Lock`对象中可以创建多个`Condition`实例（即对象监视器monitor），**线程对象可以注册在指定的`Condition`中，从而可以有选择性的进行线程通知，在调度线程上更加灵活。 在使用`notify()/notifyAll()`方法进行通知时，被通知的线程是由 JVM 选择的，用`ReentrantLock`类结合`Condition`实例可以实现“选择性通知”** ，这个功能非常重要，而且是 Condition 接口默认提供的。而`synchronized`关键字就相当于整个 Lock 对象中只有一个`Condition`实例，所有的线程都注册在它一个身上。如果执行`notifyAll()`方法的话就会通知所有处于等待状态的线程这样会造成很大的效率问题，而`Condition`实例的`signalAll()`方法 只会唤醒注册在该`Condition`实例中的所有等待线程。
 
 # volatile 关键字
 
@@ -737,9 +737,7 @@ public enum Singleton{
 
 # ThreadLocal
 
-通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**ThreadLocal实现了每一个线程都有自己的专属本地局部变量.**
-
-JDK 中提供的`ThreadLocal`类正是为了解决这样的问题。 **`ThreadLocal`类主要解决的就是让每个线程绑定自己的值，可以将`ThreadLocal`类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。**
+通常情况下，我们创建的变量是可以被任何一个线程访问并修改的。**ThreadLocal实现了每一个线程都有自己的专属本地局部变量.** **`ThreadLocal`类主要解决的就是让每个线程绑定自己的值，可以将`ThreadLocal`类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据。**
 
 **如果你创建了一个`ThreadLocal`变量，那么访问这个变量的每个线程都会有这个变量的本地副本，这也是`ThreadLocal`变量名的由来。他们可以使用 `get（）` 和 `set（）` 方法来获取默认值或将其值更改为当前线程所存的副本的值，从而避免了线程安全问题。**
 
@@ -811,9 +809,9 @@ public class Thread implements Runnable {
 }
 ```
 
-从上面`Thread`类 源代码可以看出`Thread` 类中有一个**map类型**的`threadLocals` 和 一个**map类型**的 `inheritableThreadLocals` 变量，它们都是 `ThreadLocalMap` 类型的变量,我们可以把 `ThreadLocalMap` 理解为`ThreadLocal` 类实现的定制化的 `HashMap`。默认情况下这两个变量都是 null，只有当前线程调用 `ThreadLocal` 类的 `set`或`get`方法时才创建它们，实际上调用这两个方法的时候，我们调用的是`ThreadLocalMap`类对应的 `get()`、`set()`方法。
+从上面`Thread`类 源代码可以看出`Thread` 类中有一个**TheadLocalMap类型**的`threadLocals` 和 一个**TheadLocalMap类型**的 `inheritableThreadLocals` 变量，它们都是map类型的变量,我们可以把 `ThreadLocalMap` 理解为`ThreadLocal` 类实现的定制化的 `HashMap`。默认情况下这两个变量都是 null，只有当前线程调用 `ThreadLocal` 类的 `set`或`get`方法时才创建它们，实际上调用这两个方法的时候，我们调用的是`ThreadLocalMap`类对应的 `get()`、`set()`方法。
 
-InheritableThreadLocal类是ThreadLocal类的子类。ThreadLocal中每个线程拥有它自己的值，与ThreadLocal不同的是，InheritableThreadLocal允许一个线程以及该线程创建的所有子线程都可以访问它保存的值。
+InheritableThreadLocal类是ThreadLocal类的子类。ThreadLocal中每个线程拥有它自己的值，与ThreadLocal不同的是，**InheritableThreadLocal允许一个线程以及该线程创建的所有子线程都可以访问它保存的值。**
 
 ### `ThreadLocal`类的`set()`方法
 
@@ -1039,8 +1037,8 @@ public ThreadPoolExecutor(int corePoolSize,
 #### **`ThreadPoolExecutor` 3 个最重要的参数：corePoolSize, maximumPoolSize**, workQueue
 
 - **`corePoolSize` :** 核心线程数定义了**最小可以同时运行的线程数量**。
-- **`maximumPoolSize` :** 当队列中存放的**任务**达到**队列容量**的时候，当前可以**同时运行的线程数量变为最大线程数**。
 - **`workQueue`:** 当新任务来的时候会先判断当前运行的线程数量**是否达到核心线程数**，如果达到的话，新任务就会被存放在队列中。
+- **`maximumPoolSize` :** 当队列中存放的**任务**达到**队列容量**的时候，当前可以**同时运行的线程数量变为最大线程数**
 
 #### `ThreadPoolExecutor`其他常见参数:
 
@@ -1441,7 +1439,7 @@ protected final boolean compareAndSetState(int expect, int update) {
 **AQS 定义两种资源共享方式**
 
 - **Exclusive**（独占）：只有一个线程能执行，如ReentrantLock又可分为公平锁和非公平锁：
-- 公平锁：按照线程在队列中的**排队顺序**，**先到者先拿到锁FIFO**
+    - 公平锁：按照线程在队列中的**排队顺序**，**先到者先拿到锁FIFO**
     - 非公平锁：当线程要获取锁时，**无视队列顺序直接去抢锁**，谁抢到就是谁的
 
 - **Share**（共享）：多个线程可同时执行，如` CountDownLatch`、`Semaphore`、 `CyclicBarrier`、`ReadWriteLock`,
@@ -1494,7 +1492,7 @@ tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true�
 
 我们要读取处理 6 个文件，这 6 个任务都是没有执行顺序依赖的任务，但是我们需要返回给用户的时候将这几个文件的处理的结果进行统计整理。
 
-为此我们定义了一个**线程池和 count 为 6 的`CountDownLatch`对象** 。**使用线程池处理读取任务，每一个线程处理完之后就将 count-1**，**调用`CountDownLatch`对象的 `await()`方法，直到所有文件读取完之后，才会接着执行后面的逻辑。**
+为此我们定义了一个**线程池和 count 为 6 的`CountDownLatch`对象** 。**使用线程池处理读取任务，每一个线程处理完之后就将 count-1**，**调用`CountDownLatch`对象的 `await()`方法<u>等待到所有文件读取完</u>之后，才会接着执行后面的逻辑。**
 
 伪代码是下面这样的：
 
@@ -1522,6 +1520,7 @@ public class CountDownLatchExample1 {
 
             });
         }
+      	//等待线程池中的任务做完(count到0)
         countDownLatch.await();
         threadPool.shutdown();
         System.out.println("finish");
