@@ -239,7 +239,7 @@ InnoDB的redo log是固定大小的，比如可以配置为一组4个文件, 从
 
 - **checkpoint**是当前要**擦除**的位置，也是往后推移并且循环的，擦除记录前要**把记录更新到数据文件**。
 
-write pos和checkpoint之间的是“粉板”上还空着的部分，可以用来**记录新的操作**。如果write pos追上checkpoint，表示“粉板”满了，这时候不能再执行新的更新，得停下来先擦掉一些记录，把checkpoint推进一下。
+write pos和checkpoint之间的是“粉板”上还空着的部分，可以用来**记录新的操作**。**如果write pos追上checkpoint，表示“粉板”满了，这时不能再执行新的更新，得停下来先擦掉一些记录，把checkpoint推进一下**。
 
 有了redo log，InnoDB就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失，这个能力称为**crash-safe**。
 
@@ -885,7 +885,7 @@ mysql> select field_list from t where id_card_crc=crc32('input_id_card_string') 
 2. 在CPU消耗方面，倒序方式每次写和读的时候，都需要额外调用一次reverse函数，而hash字段的方式需要额外调用一次crc32()函数。如果只从这两个函数的计算复杂度来看的话，reverse函数额外消耗的CPU资源会更小些。
 3. 从查询效率上看，使用hash字段方式的查询性能相对更稳定一些。**因为crc32算出来的值虽然有冲突的概率，但是概率非常小，可以认为每次查询的平均扫描行数接近1**。而倒序存储方式毕竟还是用的前缀索引的方式，也就是说还是会增加扫描行数。
 
-### 聚集索引与非聚集索引
+### 聚集/非聚集索引(b+树优缺点)
 
 <img src="../imgs/image-20210730164002184.png" alt="image-20210730164002184" style="width:80%;" />
 
@@ -1213,7 +1213,7 @@ MVCC 可以看作是行级锁的一个升级，可以有效减少加锁操作，
 
 **InnoDB** 引擎中，其**数据文件本身就是索引文件**，其表数据文件本身就是按 B+Tree 组织的一个索引结构，**树的叶节点 data 域保存了完整的数据记录**。这个索引的 key 是数据表的**主键**，因此 InnoDB 表数据文件本身就是**主键索引**。这被称为“**聚簇索引**（或聚集索引）”，而其余的索引都作为**辅助索引**，辅助索引的 data 域存储相应记录**主键的值而不是地址**，这也是和 MyISAM 不同的地方。在根据主索引搜索时，直接找到 key 所在的节点即可取出数据；在根据辅助索引查找时，则需要**先取出主键的值，再走一遍主索引**。 因此，在设计表的时候，不建议使用过长的字段作为主键，也不建议使用非单调的字段作为主键，这样会造成主索引频繁分裂。
 
-### 关于 MyISAM 和 InnoDB 的选择问题
+### MyISAM 和 InnoDB 的选择问题
 
 《MySQL 高性能》上面有一句话这样写到:
 
@@ -1353,6 +1353,46 @@ o  having 子句用来从分组的结果中筛选行。
 ###  [红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)的五个特性记得吗？
 
 ### mysql索引为什么使用B+树不使用B树 为什么我不使用[红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)？
+
+
+
+# sql语句
+
+#### [LC175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
+
+表1: Person
+
++-------------+---------+
+| 列名         | 类型     |
++-------------+---------+
+| PersonId    | int     |
+| FirstName   | varchar |
+| LastName    | varchar |
++-------------+---------+
+PersonId 是上表主键
+表2: Address
+
++-------------+---------+
+| 列名         | 类型    |
++-------------+---------+
+| AddressId   | int     |
+| PersonId    | int     |
+| City        | varchar |
+| State       | varchar |
++-------------+---------+
+AddressId 是上表主键
+
+
+编写一个 SQL 查询，满足条件：无论 person 是否有地址信息，都需要基于上述两表提供 person 的以下信息：
+
+```sql
+select FirstName, LastName, City, State
+from Person left join Address
+on Person.PersonId = Address.PersonId
+;
+```
+
+
 
 # mysql45讲
 

@@ -1,3 +1,24 @@
+# SpringMVC 工作原理
+
+**Spring MVC 原理如下图所示：**
+
+![image-20210910140140932](imgs/image-20210910140140932.png)
+
+**流程说明（重要)：**
+
+1. 客户端（浏览器）发送请求，直接请求到 `DispatcherServlet`。
+2. `DispatcherServlet` 根据请求信息调用 `HandlerMapping`，解析请求对应的 `Handler`。
+3. 解析到对应的 `Handler`（也就是我们平常说的 `Controller` 控制器）后，开始由 `HandlerAdapter` 适配器处理。
+4. `HandlerAdapter` 会根据 `Handler`来调用真正的处理器开处理请求，并处理相应的业务逻辑。
+5. 处理器处理完业务后，会返回一个 `ModelAndView` 对象，`Model` 是返回的数据对象，`View` 是个逻辑上的 `View`。
+6. `ViewResolver` 会根据逻辑 `View` 查找实际的 `View`(.jsp)。
+7. `DispaterServlet` 把返回的 `Model` 传给 `View`（视图渲染）。
+8. 把 `View` 返回给请求者（浏览器）
+
+![img](imgs/70.png)
+
+
+
 # Spring IOC & AOP
 
 ## 谈谈对 IoC 的了解
@@ -265,9 +286,9 @@ public OneService getService(status) {
 
 > 下面的内容整理自：https://yemengying.com/2016/07/14/spring-bean-life-cycle/ ，除了这篇文章，再推荐一篇很不错的文章 ：https://www.cnblogs.com/zrtqsk/p/3735273.html 。
 
-- Bean 容器找到配置文件中 Spring Bean 的定义。
-- Bean 容器利用 Java Reflection API 创建一个 Bean 的实例。
-- 如果涉及到一些属性值 利用 `set()`方法设置一些属性值。
+- 通过BeanDefinitionReader读取配置文件中 Spring Bean 的定义解析成BeanDefinition, Bean 容器找到BeanDefinition。
+- (实例化)Bean 容器利用 Java Reflection API 创建一个 Bean 的实例。
+- (以下属于初始化)如果涉及到一些属性值 利用 `set()`方法设置一些属性值。
 - 如果 Bean 实现了 `BeanNameAware` 接口，调用 `setBeanName()`方法，传入 Bean 的名字。
 - 如果 Bean 实现了 `BeanClassLoaderAware` 接口，调用 `setBeanClassLoader()`方法，传入 `ClassLoader`对象的实例。
 - 如果 Bean 实现了 `BeanFactoryAware` 接口，调用 `setBeanClassLoader()`方法，传入 `ClassLoade` r 对象的实例。
@@ -276,7 +297,7 @@ public OneService getService(status) {
 - 如果 Bean 实现了`InitializingBean`接口，执行`afterPropertiesSet()`方法。
 - 如果 Bean 在配置文件中的定义包含 init-method 属性，执行指定的方法。
 - 如果有和加载这个 Bean 的 Spring 容器相关的 `BeanPostProcessor` 对象，执行`postProcessAfterInitialization()` 方法
-- 当要销毁 Bean 的时候，如果 Bean 实现了 `DisposableBean` 接口，执行 `destroy()` 方法。
+- (bean销毁)当要销毁 Bean 的时候，如果 Bean 实现了 `DisposableBean` 接口，执行 `destroy()` 方法。
 - 当要销毁 Bean 的时候，如果 Bean 在配置文件中的定义包含 destroy-method 属性，执行指定的方法。
 
 图示：
@@ -325,22 +346,7 @@ Model2 模式下还存在很多问题，Model2 的抽象和封装程度还远远
 
 MVC 是一种设计模式,Spring MVC 是一款很优秀的 MVC 框架。Spring MVC 可以帮助我们进行更简洁的 Web 层的开发，并且它天生与 Spring 框架集成。Spring MVC 下我们一般把后端项目分为 Service 层（处理业务）、Dao 层（数据库操作）、Entity 层（实体类）、Controller 层(控制层，返回数据给前台页面)。
 
-## SpringMVC 工作原理了解吗?
 
-**Spring MVC 原理如下图所示：**
-
-![image-20210910140140932](imgs/image-20210910140140932.png)
-
-**流程说明（重要)：**
-
-1. 客户端（浏览器）发送请求，直接请求到 `DispatcherServlet`。
-2. `DispatcherServlet` 根据请求信息调用 `HandlerMapping`，解析请求对应的 `Handler`。
-3. 解析到对应的 `Handler`（也就是我们平常说的 `Controller` 控制器）后，开始由 `HandlerAdapter` 适配器处理。
-4. `HandlerAdapter` 会根据 `Handler`来调用真正的处理器开处理请求，并处理相应的业务逻辑。
-5. 处理器处理完业务后，会返回一个 `ModelAndView` 对象，`Model` 是返回的数据对象，`View` 是个逻辑上的 `View`。
-6. `ViewResolver` 会根据逻辑 `View` 查找实际的 `View`(.jsp)。
-7. `DispaterServlet` 把返回的 `Model` 传给 `View`（视图渲染）。
-8. 把 `View` 返回给请求者（浏览器）
 
 # Spring 框架中用到了哪些设计模式？
 
@@ -353,6 +359,7 @@ MVC 是一种设计模式,Spring MVC 是一款很优秀的 MVC 框架。Spring M
 - **?包装器设计模式** : 我们的项目需要连接多个数据库，而且不同的客户在每次访问中根据需要会去访问不同的数据库。这种模式让我们可以根据客户的需求能够动态切换不同的数据源。
 - **?观察者模式:** Spring 事件驱动模型就是观察者模式很经典的一个应用。
 - **适配器模式** : Spring AOP 的增强或通知(Advice)使用到了适配器模式、spring MVC 中也是用到了适配器模式适配`Controller`。
+- **责任链式模式**: SpringAOP就是利用动态代理和责任链模式实现的，当一个切面有多个织入时，这些需要织入的方法就形成了一个责任链
 - ......
 
 # Spring 事务
@@ -556,9 +563,9 @@ Spring中的bean创建, **先调用构造函数进行实例化，然后填充属
 
 三级缓存，也就是三个Map集合类：
 
-- singletonObjects：第一级缓存，里面放置的是**实例化好的单例对象**；
-- earlySingletonObjects：第二级缓存，里面存放的是**提前曝光的单例对象**；
-- singletonFactories：第三级缓存，里面存放的是**要被实例化的对象的对象工厂**。
+- singletonObjects：第一级缓存，Map<String, Object>, 里面放置的是**实例化好的单例对象**；
+- earlySingletonObjects：第二级缓存，Map<String, Object>,里面存放的是**提前曝光的单例对象**；
+- singletonFactories：第三级缓存，Map<String, ObjectFactory>,里面存放的是**要被实例化的对象的对象工厂**。
 
 所以**当一个Bean调用构造函数进行实例化**后，**即使属性还未填充**，就可以通过**三级缓存向外暴露依赖的引用值**（所以循环依赖问题的解决也是基于Java的引用传递）. 
 
@@ -572,7 +579,7 @@ Spring中的bean创建, **先调用构造函数进行实例化，然后填充属
 
 **![img](imgs/clip_image001-1253300.png)**
 
-## Spring使用声明式事务，最终也是通过执行JDBC事务来实现功能的，那么，一个事务方法，如何获知当前是否存在事务？
+## Spring使用声明式事务，最终也是通过执行JDBC事 务来实现功能的，那么，一个事务方法，如何获知当前是否存在事务？
 
 答案是[使用ThreadLocal](https://www.liaoxuefeng.com/wiki/1252599548343744/1306581251653666)。Spring总是把JDBC相关的Connection和TransactionStatus实例绑定到ThreadLocal。**如果一个事务方法从ThreadLocal未取到事务，那么它会打开一个新的JDBC连接，同时开启一个新的事务，否则，它就直接使用从ThreadLocal获取的JDBC连接以及TransactionStatus。**
 

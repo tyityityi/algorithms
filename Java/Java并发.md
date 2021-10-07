@@ -451,7 +451,7 @@ public class SynchronizedDemo2 {
 
 **不过两者的本质都是对对象监视器 monitor 的获取。**
 
-## JDK1.6 之后的 synchronized 关键字底层的优化
+## synchronized锁升级(JDK1.6 之后)
 
 <img src="imgs/v2-9db4211af1be81785f6cc51a58ae6054_r.jpg" alt="preview" style="width:100%;" />
 
@@ -579,6 +579,68 @@ JDK1.6 对锁的实现引入了大量的优化，如**偏向锁、轻量级锁�
 
 轻量级锁解锁时, 会使用**原子的CAS操作**将当前**线程的锁记录Lock Record替换回到对象头**, 如果成功, 表示没有竞争发生; **如果失败, 表示当前锁存在竞争, 锁就会膨胀成重量级锁.**
 
+#### 3. 重量级锁
+
+轻量级锁通过自旋实现,不会阻塞线程; 如果自旋次数过多仍未获得锁, 会升级成重量级锁, 重量级锁会导致线程阻塞.
+
+https://blog.51cto.com/u_14440216/2427707
+
+https://www.jianshu.com/p/60ea4b0d4487
+
+<img src="imgs/image-20210927190710727.png" alt="image-20210927190710727" style="width:67%;" />
+
+##### 获取monitor
+
+1. 线程首先通过CAS尝试将monitor的owner设置为自己。
+2. 若执行成功，则判断该线程是不是重入。若是重入，则执行recursions(重入计数器) + 1,否则执行recursions = 1。
+3. 若失败，则将自己封装为ObjectWaiter，并通过CAS加入到cxq(竞争列表)中。
+
+##### 释放monitor
+
+1. 判断是否为重量级锁，是则继续流程。
+2. recursions(重入计数器) - 1
+3. 当线程释放锁时，会从cxq或EntryList中挑选一个线程唤醒，被选中的线程叫做`Heir presumptive`即假定继承人（应该是这样翻译），就是图中的`Ready Thread`，假定继承人被唤醒后会尝试获得锁，但`synchronized`是非公平的，所以假定继承人不一定能获得锁（这也是它叫”假定”继承人的原因）。cxq中的线程可以进行自旋竞争锁，所以OnDeckThread若碰上自旋线程就需要和他们竞争
+
+如果线程获得锁后调用`Object#wait`方法，则会将线程加入到WaitSet中，当被`Object#notify`唤醒后，会将线程从WaitSet移动到cxq或EntryList中去。需要注意的是，当调用一个锁对象的`wait`或`notify`方法时，**如当前锁的状态是偏向锁或轻量级锁则会先膨胀成重量级锁**。
+
+`synchronized`的`monitor`锁机制和JDK的`ReentrantLock`与`Condition`是很相似的，`ReentrantLock`也有一个存放等待获取锁线程的链表，`Condition`也有一个类似`WaitSet`的集合用来存放调用了`await`的线程。如果你之前对`ReentrantLock`有深入了解，那理解起`monitor`应该是很简单。
+
+##### cxq(竞争列表)
+
+cxq是一个单向链表。被挂起线程等待重新竞争锁的链表, monitor 通过CAS将包装成**ObjectWaiter写入到列表的头部**。为了避免插入和取出元素的竞争，所以**Owner会从列表尾部取元素 (来分配锁?)**。
+
+<img src="imgs/image-20210927153350525.png" alt="image-20210927153350525" style="width:67%;" />
+
+##### EntryList(锁候选者列表)
+
+EntryList是一个双向链表。当EntryList为空，cxq不为空，Owener会在unlock时，将cxq中的数据移动到EntryList。并指定EntryList列表头的第一个线程为OnDeck线程。
+
+##### EntryList跟cxq的区别
+
+在cxq中的队列可以继续自旋等待锁，若达到自旋的阈值仍未获取到锁则会调用**park方法挂起**。而EntryList中的线程都是被挂起的线程。
+
+##### WaitList
+
+WatiList是Owner线程地调用wait()方法后进入的线程。进入WaitList中的线程在notify()/notifyAll()调用后会被加入到EntryList。
+
+##### Owner
+
+当前锁持有者。
+
+##### OnDeckThread
+
+可进行锁竞争的线程。若一个线程被设置为OnDeck，则表明其可以进行tryLock操作，若获取锁成功，则变为Owner,否则仍将其回插到EntryList头部。
+
+##### OnDeckThread竞争锁失败的原因
+
+cxq中的线程可以进行自旋竞争锁，所以OnDeckThread若碰上自旋线程就需要和他们竞争
+
+##### recursions(重入计数器)
+
+用来表示某个线程进入该锁的次数。
+
+
+
 #### 偏向锁->轻量级锁->重量级锁
 
 总结一下加锁解锁过程, 有线程A和线程B来竞争对象c的锁(如: synchronized(c){} ), 这时**线程A和线程B同时将对象c的MarkWord复制到自己的锁记录中**, 两者竞争去获取锁, 假设线程**A成功获取锁**, 并将**对象c的对象头中的线程ID(MarkWord中)修改为指向自己的锁记录Lock Record的指针**, 这时线程B仍旧通过**CAS**去获取对象c的锁, 因为对象c的MarkWord中的内容已经被线程A改了, 所以**获取失败**. 此时**为了提高获取锁的效率, 线程B会循环去获取锁**, 这个循环是有次数限制的, 如果在循环结束之前CAS操作成功, 那么线程B就获取到锁, 如果**循环结束依然获取不到锁, 则获取锁失败, 对象c的MarkWord中的记录会被修改为重量级锁,** 然后**线程B就会被挂起**, 之后有**线程C来获取锁时, 看到对象c的MarkWord中的是重量级锁的指针, 说明竞争激烈, 直接挂起.**
@@ -662,6 +724,10 @@ public enum Singleton{
 但是这种模式无法做到懒加载,即一创建就已构建实例. 所以在**人为可避免反射破坏的前提下,还是通过懒汉双锁来构建单例模式**
 
 # synchronized 和 ReentrantLock 的区别
+
+## synchronized是关键字; reentrantlock是一个类,实现了Lock接口
+
+## synchronized锁的是对象, 锁信息保存在对象头; reentrantlock锁的是线程,通过int类型的state标识来标识锁的状态
 
 ## 两者都是可重入锁
 

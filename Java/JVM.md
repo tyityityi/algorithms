@@ -656,6 +656,19 @@ public class ReferenceCountingGc {
 
 ![image-20210909144403521](imgs/image-20210909144403521.png)
 
+| 新生代(别名)                   | 老年代                   | JVM 参数                |
+| :----------------------------- | :----------------------- | :---------------------- |
+| Serial (DefNew)                | Serial Old(PSOldGen)     | -XX:+UseSerialGC        |
+| Parallel Scavenge (PSYoungGen) | Serial Old(PSOldGen)     | -XX:+UseParallelGC      |
+| Parallel Scavenge (PSYoungGen) | Parallel Old (ParOldGen) | -XX:+UseParallelOldGC   |
+| ParNew (ParNew)                | Serial Old(PSOldGen)     | -XX:-UseParNewGC        |
+| ParNew (ParNew)                | CMS+Serial Old(PSOldGen) | -XX:+UseConcMarkSweepGC |
+| G1                             | G1                       | -XX:+UseG1GC            |
+
+![image-20211005173700992](imgs/image-20211005173700992-3426625.png)
+
+连线的部分标识可以配合使用
+
 **如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。**
 
 **根据具体应用场景选择适合的垃圾收集器**。
@@ -689,7 +702,7 @@ Serial（串行）收集器是最基本、历史最悠久的垃圾收集器了�
 
 **缺点**: **需要Stop the World**
 
-### (新生代, 并行) ParNew 收集器
+### (新生代, 并行) ParNew 收集器(配合cms)
 
 **新生代**采用**标记-复制**算法
 
@@ -701,25 +714,15 @@ Serial（串行）收集器是最基本、历史最悠久的垃圾收集器了�
 
 >  它是许多运行在 Server 模式下的虚拟机的首要选择，除了 Serial 收集器外，只有它能与 CMS 收集器配合工作。
 
-### (新生代, 并行) Parallel Scavenge 收集器
+### (新生代, 并行) Parallel Scavenge 收集器(jdk8默认)
 
 **新生代采用标记-复制算法**
 
 Parallel Scavenge 几乎和 ParNew 一样。 **那么它有什么特别之处呢？**
 
-```shell
--XX:+UseParallelGC
+**Parallel Scavenge 收集器关注点是吞吐量（高效率的利用 CPU）。CMS 等垃圾收集器的关注点更多的是用户线程的停顿时间（提高用户体验）。所谓吞吐量就是 CPU 中用于<u>运行用户代码的时间</u>与 CPU 总消耗时间的比值。** 
 
-    使用 Parallel 收集器+ 老年代串行
-
--XX:+UseParallelOldGC
-
-    使用 Parallel 收集器+ 老年代并行
-```
-
-**Parallel Scavenge 收集器关注点是吞吐量（高效率的利用 CPU）。CMS 等垃圾收集器的关注点更多的是用户线程的停顿时间（提高用户体验）。所谓吞吐量就是 CPU 中用于运行用户代码的时间与 CPU 总消耗时间的比值。** 
-
-虚拟机会根据当前系统的运行情况收集**性能监控**信息，动态调整这些**参数**以提供**最合适的停顿时间**或者**最大的吞吐量**，这种方式称为**GC自适应的调节策略**（GC Ergonomics）。自适应调节策略也是Parallel Scavenge收集器与ParNew收集器的一个重要区别。
+虚拟机会根据当前系统的运行情况收集**性能监控**信息，动态调整这些**参数**以提供**最合适的停顿时间**或者**最大的吞吐量**，这种方式称为**GC自适应的调节策略**（GC Ergonomics）。**自适应调节策略**也是Parallel Scavenge收集器与ParNew收集器的一个重要区别。
 
 图中的并发应该为并行.
 
@@ -727,11 +730,19 @@ Parallel Scavenge 几乎和 ParNew 一样。 **那么它有什么特别之处呢
 
 > Parallel Scavenge收集器无法与CMS收集器配合使用，所以在JDK 1.6推出Parallel Old之前，如果新生代选择Parallel Scavenge收集器，老年代只有Serial Old收集器能与之配合使用。
 
-**这是 JDK1.8 默认收集器**
+```java
+-XX:+UseParallelGC(jdk8默认)
+		UseParallelGC 即 Parallel Scavenge + Serial Old
+    使用 Parallel 收集器+ 老年代串行
+
+-XX:+UseParallelOldGC
+		UseParallelOldGC 即 Parallel Scavenge + Parallel Old
+    使用 Parallel 收集器+ 老年代并行
+```
 
 使用 java -XX:+PrintCommandLineFlags -version 命令查看
 
-```
+```java
 -XX:InitialHeapSize=262921408 -XX:MaxHeapSize=4206742528 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC
 java version "1.8.0_211"
 Java(TM) SE Runtime Environment (build 1.8.0_211-b12)
@@ -746,7 +757,7 @@ JDK1.8 默认使用的是 Parallel Scavenge + Parallel Old，如果指定了-XX:
 
 **Serial 收集器的老年代版本**，它同样是一个单线程收集器。它主要有两大用途：一种用途是在 JDK1.5 以及以前的版本中与 Parallel Scavenge 收集器搭配使用，另一种用途是作为 CMS 收集器的后备方案, 在并发收集发生Concurrent Mode Failure时使用。
 
-### (老年代, 并行) Parallel Old 收集器
+### (老年代, 并行) Parallel Old 收集器(jdk8默认)
 
 **老年代**采用**标记-整理**算法。
 
@@ -755,6 +766,8 @@ JDK1.8 默认使用的是 Parallel Scavenge + Parallel Old，如果指定了-XX:
 在**注重吞吐量以及 CPU 资源**的场合，都可以优先考虑 **Parallel Scavenge 收集器和 Parallel Old 收集器**。
 
 ### (老年代, 并发) CMS 收集器
+
+> **默认情况下不会启用**该算法。 必须指定*XX：+ USeParNewGC*才能真正启用它
 
 CMS 收集器是通过 **“标记-清除”算法**实现的
 
@@ -781,7 +794,7 @@ CMS分为四个步骤：
 - CMS收集器不能像其他收集器那样等到老年代几乎完全被填满了再进行收集，需要**预留一部分空间**提供**并发收集的程序使用**。
 - **标记-清除**算法导致的**空间碎片**. 空间碎片过多时，将会给**大对象分配**带来很大麻烦，往往出现**老年代空间剩余，但无法找到足够大连续空间来分配当前对象**。
 
-### (新老both, 并发) G1 收集器
+### (新老both, 并发) G1 收集器(jdk9以后默认)
 
 **G1 (Garbage-First) 是一款面向服务器的垃圾收集器,主要针对配备多颗处理器及大容量内存的机器. 以极高概率满足 GC <u>停顿时间</u>要求的同时,还具备<u>高吞吐量</u>性能特征.**
 
