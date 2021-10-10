@@ -339,7 +339,7 @@ atomicStampedRef.compareAndSet(1,2,atomicStampedRef.getStamp(),atomicStampedRef.
 
 
 
-# synchronized 关键字
+# synchronized 关键字u
 
 <img src="https://snailclimb.gitee.io/javaguide/docs/java/multi-thread/images/interview-questions/synchronized%E5%85%B3%E9%94%AE%E5%AD%97.png" alt="img" style="width:70%;" />
 
@@ -521,7 +521,7 @@ JDK1.6 对锁的实现引入了大量的优化，如**偏向锁、轻量级锁�
 | ------------------------------------------ | ---- |
 | 指向互斥量(**重量级锁-底层的mutex**)的指针 | 10   |
 
-**GC标记信息** 后两位11
+PS:**GC标记信息** 后两位11
 
 | 30bit                 | 2bit |
 | --------------------- | ---- |

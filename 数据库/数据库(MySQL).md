@@ -12,7 +12,7 @@
 
 # 可重复读的幻读问题
 
-这种结果告诉我们其实在MySQL可重复读的隔离级别中并不是完全解决了幻读的问题，而是解决了本事务读数据情况下的幻读问题。而对于本事务的修改操作依旧存在幻读问题(**修改时会修改另一个事务添加的行,即幻读到另一个事务添加的行**)，就是说MVCC对于幻读的解决时不彻底的。
+这种结果告诉我们其实在MySQL可重复读的隔离级别中并不是完全解决了幻读的问题，而是解决了**本事务<u>读</u>**数据情况下的幻读问题。而对于**本事务的<u>修改</u>**操作依旧存在幻读问题(**修改时会修改另一个事务添加的行,即幻读到另一个事务添加的行**)，就是说MVCC对于幻读的解决是不彻底的。
 
 例如:
 
@@ -86,12 +86,21 @@ COMMIT;
 ### 事务的ACID特性
 
 - **原子性**（`Atomicity`） ： 事务是最小的执行单位，不允许分割。事务的原子性确保动作要么全部完成，要么完全不起作用；
-
 - **一致性**（`Consistency`）： 执行事务前后，数据保持一致，例如转账业务中，无论事务是否成功，转账者和收款人的总额应该是不变的；
-
 - **隔离性**（`Isolation`）： 并发访问数据库时，一个用户的事务不被其他事务所干扰，各并发事务之间数据库是独立的；
-
 - **持久性**（`Durability`）： 一个事务被提交之后。它对数据库中数据的改变是持久的，即使数据库发生故障也不应该对其有任何影响。
+
+### Innodb引擎如何保证ACID
+
+使用 InnoDB 的数据库在异常崩溃后，数据库重新启动的时候会保证数据库恢复到崩溃前的状态。这个恢复的过程依赖于 `redo log` 。
+
+MySQL InnoDB 引擎使用 **redo log(重做日志)** 保证事务的**持久性D**;
+
+使用 **undo log(回滚日志)** 来保证事务的**原子性A**;
+
+MySQL InnoDB 引擎通过 **锁机制**、**MVCC** 等手段来保证**事务的隔离性I**（ 默认支持的隔离级别是 **`REPEATABLE-READ`** ）;
+
+保证了事务的持久性、原子性、隔离性之后，**一致性C**才能得到保障。
 
 ### 并发事务带来的问题
 
@@ -121,14 +130,14 @@ COMMIT;
 
 https://www.cnblogs.com/yousheng/p/12944218.html
 
-#### 一致性读取 (consistent read)
+#### 一致性读取(mvcc) (consistent read)
 
-- 事务在进行读操作时，使用的是事务开始时的行快照数据，这样就不用担心读到其他其他事务修改的数据。
+- 事务在进行读操作时，使用的是**事务开始时的行快照数据**，这样就不用担心读到其他其他事务修改的数据。
 - 在[可重复读]下，事务快照是基于第一次读操作的快照(通过undo log 回溯)
 - 在[可提交读]下，每一次一致性读操作都会重置快照
 - 优点：不上锁，允许其他事务进行修改
 
-#### 半一致性读取 (semi-consistent read)
+#### 半一致性读取 (mvcc+锁)(semi-consistent read)
 
 - 即UPDATE语句中的读/匹配操作，当UPDATE语句执行的时候，InnoDB会取最后一次提交到MySQL的数据来进行 Where 子句中的匹配。
     - 如果匹配上了（也就是要更新），那就重读该行并加锁（或等待加锁）
@@ -149,7 +158,7 @@ https://www.cnblogs.com/yousheng/p/12944218.html
 
 锁在了两条索引记录之间的锁，或者(无穷小,某索引)/(某索引,无穷大)，他们锁住的是一个范围，且不同的间隙锁不互斥，他们排斥的只是在锁范围内的插入操作
 
-- mark: R.C 隔离级别下是被禁用的
+- mark: **R.C 隔离级别下是被禁用的**
 
 #### next-key lock : 
 
@@ -206,7 +215,7 @@ https://www.cnblogs.com/yousheng/p/12944218.html
 
     所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，该级别可以**防止脏读、不可重复读以及幻读**。
 
-    InnoDB 默默的把所有纯 SELECT 语句都转成了 SELECT ... FOR SHARE ，也就默认都加读锁, 使用了**一致性读和间隙锁**是不会产生的幻读问题的
+    InnoDB 默默的把所有纯 SELECT 语句都转成了 SELECT ... FOR SHARE ，也就默认都加读锁, 使用了**一致性读(MVCC)和间隙锁**是不会产生的幻读问题的
     
     ![img](../imgs/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d3333e998b2e6ada2e5b9bbe8afbb28e4bdbfe794a8e58fafe9878de5a48de8afbb292e6a7067.png)
 
@@ -304,7 +313,7 @@ redo log 是物理日志，undo log 和 binlog 是逻辑日志
     - binlog我们可以简单理解为：**存储着每条变更的SQL语句**
     - 可以通过binlog来对数据进行恢复
     - binlog 可以用于主从复制中，从库利用主库上的 binlog 进行重播，实现主从同步。用于数据库的基于时间点、位点等的还原操作。binlog 的模式分三种：Statement、Row、Mixed。
-    - 事务**提交**的时候，一次性将事务中的 sql 语句（一个事务可能对应多个 sql 语句）按照一定的格式记录到 binlog 中. 这里与 redo log 很明显的差异就是 redo log 并不一定是在事务提交的时候才刷新到磁盘，而是在事务开始之后就开始逐步写入磁盘。binlog 的默认保存时间是由参数 expire_logs_days 配置的，对于非活动的日志文件，在生成时间超过 expire_logs_days 配置的天数之后，会被自动删除。
+    - 事务**提交**的时候，一次性将事务中的 sql 语句（一个事务可能对应多个 sql 语句）按照一定的格式记录到 binlog 中. 这里与 redo log 很明显的差异就是 **redo log 并不一定是在事务提交的时候才刷新到磁盘，而是在事务开始之后就开始逐步写入磁盘。**binlog 的默认保存时间是由参数 expire_logs_days 配置的，对于非活动的日志文件，在生成时间超过 expire_logs_days 配置的天数之后，会被自动删除。
 - redo log重做日志是InnoDB存储引擎层的，用来保证事务安全
     - **事务开始之后**，就开始产生 redo log 日志了，**在事务执行的过程中**，redo log 开始**逐步落盘**
     - 当对应事务的脏页写入到磁盘之后，redo log 的使命就完成了，它所占用的空间也就可以被覆盖了。
@@ -400,7 +409,7 @@ MVCC可以为数据库解决以下问题：
 
     可重复读的核心就是一致性读（consistent read）；而事务更新数据的时候，只能用**当前读**。如果当前的记录的行锁被其他事务占用的话，就需要进入锁等待。
 
-### 例子:
+### 例子: 事务开始前id, k = (1,1)
 
 <img src="imgs/823acf76e53c0bdba7beab45e72e90d6.png" alt="img" style="width:50%;" />
 
@@ -442,7 +451,7 @@ begin/start transaction 命令并不是一个事务的起点，在执行到它�
 - 接着，找到上一个历史版本，一看row trx_id=102，比高水位大，处于红色区域，不可见；
 - 再往前找，终于找到了（1,1)，它的row trx_id=90，比低水位小，处于绿色区域，可见。
 
-这样执行下来，虽然期间这一行数据被修改过，但是事务A不论在什么时候查询，看到这行数据的结果都是一致的，所以我们称之为一致性读。
+这样执行下来，虽然期间这一行数据被修改过，但是事务A不论在什么时候查询，看到这行数据的结果都是一致的，所以我们称之为**一致性读(mvcc)**。
 
 所以,一个数据版本，对于一个事务视图来说，除了自己的更新总是可见以外，有三种情况：
 
@@ -491,11 +500,11 @@ mysql> select k from t where id=1 for update;
 
 事务C’的不同是，更新后并没有马上提交，在它提交前，事务B的更新语句先发起了。前面说过了，虽然事务C’还没提交，但是(1,2)这个版本也已经生成了，并且是当前的最新版本。那么，事务B的更新语句会怎么处理呢？
 
-这时候，我们在上一篇文章中提到的“两阶段锁协议”就要上场了。**事务C’没提交，也就是说(1,2)这个版本上的写锁还没释放。而事务B是当前读，必须要读最新版本，而且必须加锁，因此就被锁住了，必须等到事务C’释放这个锁，才能继续它的当前读。****所以B读到的k还是=3?**
+这时候，我们在上一篇文章中提到的“**两阶段锁协议**”就要上场了。**事务C’没提交，也就是说(1,2)这个版本上的写锁还没释放。而事务B是当前读，必须要读最新版本，而且必须加锁，因此就被锁住了，必须等到事务C’释放这个锁，才能继续它的当前读。****所以B读到的k还是=3?**
 
 <img src="imgs/540967ea905e8b63630e496786d84c92.png" alt="img" style="width:50%;" />
 
-#### 在RC下，事务A和事务B的查询语句查到的k，分别应该是多少呢？
+#### 在RC下(原k=1)，事务A和事务B的查询语句查到的k，分别应该是多少呢？
 
 这里需要说明一下，“start transaction with consistent snapshot; ”的意思是从这个语句开始，创建一个持续整个事务的一致性快照。所以，在读提交隔离级别下，这个用法就没意义了，等效于普通的start transaction。
 
@@ -885,7 +894,7 @@ mysql> select field_list from t where id_card_crc=crc32('input_id_card_string') 
 2. 在CPU消耗方面，倒序方式每次写和读的时候，都需要额外调用一次reverse函数，而hash字段的方式需要额外调用一次crc32()函数。如果只从这两个函数的计算复杂度来看的话，reverse函数额外消耗的CPU资源会更小些。
 3. 从查询效率上看，使用hash字段方式的查询性能相对更稳定一些。**因为crc32算出来的值虽然有冲突的概率，但是概率非常小，可以认为每次查询的平均扫描行数接近1**。而倒序存储方式毕竟还是用的前缀索引的方式，也就是说还是会增加扫描行数。
 
-### 聚集/非聚集索引(b+树优缺点)
+### 聚集/非聚集索引
 
 <img src="../imgs/image-20210730164002184.png" alt="image-20210730164002184" style="width:80%;" />
 
@@ -963,7 +972,7 @@ select id,name,email from SUser where email='zhangssxyz@xxx.com';
 
 相比，这个语句只要求返回id和email字段。
 
-所以，如果使用index1（即email整个字符串的索引结构）的话，可以利用覆盖索引，从index1查到结果后直接就返回了，不需要回到ID索引再去查一次。而如果使用index2（即email(6)索引结构）的话，就不得不回到ID索引再去判断email字段的值。
+所以，如果使用索引1（即**email整个字符串的前缀索引**）的话，可以利用覆盖索引，从index1查到结果后直接就返回了，不需要回到ID索引再去查一次。而如果使用索引2（即**email(6)索引结构,前六位的前缀索引**）的话，就不得不回到ID索引再去判断email字段的值。
 
 即使你将index2的定义修改为email(18)的前缀索引，这时候虽然index2已经包含了所有的信息，但InnoDB还是要回到id索引再查一下，因为系统并不确定前缀索引的定义是否截断了完整信息。
 
@@ -1128,13 +1137,13 @@ mysql> select * from tuser where name like '张%' and age=10 and ismale=1;
 
     <img src="imgs/image-20210919130920372.png" alt="image-20210919130920372" style="width:50%;" />
 
-    ​	这个过程InnoDB并不会去看age的值，只是按顺序把“name第一个字是’张’”的记录一条条取出来回表。因此，需要回表4次。
+    ​	这个过程InnoDB并不会去看age的值，只是**按顺序把“name第一个字是’张’”的记录一条条取出来回表**。因此，**需要回表4次**。
 
-- MySQL 5.6 引入的索引下推优化（index condition pushdown)， 可以在索引遍历过程中，对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数。
+- MySQL 5.6 引入的**索引下推优化**（index condition pushdown)， 可以在索引遍历过程中，**对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数。**
 
     <img src="imgs/image-20210919130939560.png" alt="image-20210919130939560" style="width:50%;" />
 
-    InnoDB在(name,age)索引内部就判断了age是否等于10，对于不等于10的记录，直接判断并跳过。在我们的这个例子中，只需要对ID4、ID5这两条记录回表取数据判断，就只需要回表2次。
+    InnoDB在(name,age)索引内部就判断了**age是否等于10，对于不等于10的记录，直接判断并跳过**。在我们的这个例子中，只需要对ID4、ID5这两条记录回表取数据判断，就**只需要回表2次**。
 
 
 
@@ -1148,7 +1157,7 @@ mysql> select * from tuser where name like '张%' and age=10 and ismale=1;
 
     **InnoDB 存储引擎的锁的算法有三种：**
 
-    - **Record lock**：**记录锁**，**单个行记录上的锁**
+    - **Record lock**：**行锁, 记录锁**，**单个行记录上的锁**
     - **Gap lock**：**间隙锁**，锁定一个**范围**，不包括**记录本身**
     - **Next-key lock**：Record+Gap **临键锁**，锁定一个**范围**，包含**记录本身**
 
@@ -1253,18 +1262,6 @@ select sql_no_cache count(*) from usr;
 
 ## 其他
 
-### Innodb引擎如何保证ACID
-
-使用 InnoDB 的数据库在异常崩溃后，数据库重新启动的时候会保证数据库恢复到崩溃前的状态。这个恢复的过程依赖于 `redo log` 。
-
-MySQL InnoDB 引擎使用 **redo log(重做日志)** 保证事务的**持久性D**;
-
-使用 **undo log(回滚日志)** 来保证事务的**原子性A**;
-
-MySQL InnoDB 引擎通过 **锁机制**、**MVCC** 等手段来保证**事务的隔离性I**（ 默认支持的隔离级别是 **`REPEATABLE-READ`** ）;
-
-保证了事务的持久性、原子性、隔离性之后，**一致性C**才能得到保障。
-
 ### 案例题1:
 
 如果你在维护一个学校的学生信息数据库，学生登录名的统一格式是”学号@gmail.com", 而学号的规则是：十五位的数字，其中前三位是所在城市编号、第四到第六位是学校编号、第七位到第十位是入学年份、最后五位是顺序编号。
@@ -1352,13 +1349,72 @@ o  having 子句用来从分组的结果中筛选行。
 
 ###  [红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)的五个特性记得吗？
 
+质1：每个节点要么是黑色，要么是红色。
+
+性质2：根节点是黑色。
+
+性质3：每个叶子节点（NIL）是黑色。 
+
+性质4：每个红色节点的两个子节点一定都是黑色。 不能有两个红色节点相连。
+
+性质5：任意一节点到每个叶子节点的路径都包含数量相同的黑结点。
+
+从性质5又可以推出： 性质5.1：如果一个节点存在黑子节点，那么该结点肯定有两个子节点。不然走另一条路就会少一层黑色结点。
+
 ### mysql索引为什么使用B+树不使用B树 为什么我不使用[红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)？
 
-
+为了叶子结点存数据,查找,删除高效且稳定为logn
 
 # sql语句
 
-#### [LC175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
+#### [596. 超过5名学生的课](https://leetcode-cn.com/problems/classes-more-than-5-students/)
+
+难度简单216
+
+SQL架构
+
+有一个`courses` 表 ，有: **student (学生)** 和 **class (课程)**。
+
+请列出所有超过或等于5名学生的课。
+
+例如，表：
+
+```
++---------+------------+
+| student | class      |
++---------+------------+
+| A       | Math       |
+| B       | English    |
+| C       | Math       |
+| D       | Biology    |
+| E       | Math       |
+| F       | Computer   |
+| G       | Math       |
+| H       | Math       |
+| I       | Math       |
++---------+------------+
+```
+
+应该输出:
+
+```
++---------+
+| class   |
++---------+
+| Math    |
++---------+
+```
+
+```java
+select class 
+from courses 
+group by class
+having count(distinct student)>=5
+```
+
+
+
+### [LC175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
 
 表1: Person
 
@@ -1391,6 +1447,263 @@ from Person left join Address
 on Person.PersonId = Address.PersonId
 ;
 ```
+
+### [181. 超过经理收入的员工](https://leetcode-cn.com/problems/employees-earning-more-than-their-managers/)
+
+难度简单414
+
+SQL架构
+
+`Employee` 表包含所有员工，他们的经理也属于员工。每个员工都有一个 Id，此外还有一列对应员工的经理的 Id。
+
+```
++----+-------+--------+-----------+
+| Id | Name  | Salary | ManagerId |
++----+-------+--------+-----------+
+| 1  | Joe   | 70000  | 3         |
+| 2  | Henry | 80000  | 4         |
+| 3  | Sam   | 60000  | NULL      |
+| 4  | Max   | 90000  | NULL      |
++----+-------+--------+-----------+
+```
+
+给定 `Employee` 表，编写一个 SQL 查询，该查询可以获取收入超过他们经理的员工的姓名。在上面的表格中，Joe 是唯一一个收入超过他的经理的员工。
+
+```
++----------+
+| Employee |
++----------+
+| Joe      |
++----------+
+```
+
+```sql
+select Name as Employee 
+from Employee e
+where e.Salary > (
+    select Salary
+    from Employee
+    where Id = e.ManagerId
+);
+```
+
+### 排名查询
+
+排名是数据库中的一个经典题目，实际上又根据排名的具体细节可分为3种场景：
+
+连续排名，例如薪水3000、2000、2000、1000排名结果为1-2-3-4，体现同薪不同名，排名类似于编号
+同薪同名但总排名不连续，例如同样的薪水分布，排名结果为1-2-2-4
+同薪同名且总排名连续，同样的薪水排名结果为1-2-2-3
+不同的应用场景可能需要不同的排名结果，也意味着不同的查询策略。本题的目标是实现第三种排名方式下的第N个结果，且是全局排名，不存在分组的问题，实际上还要相对简单一些。
+
+值得一提的是：在Oracle等数据库中有窗口函数，可非常容易实现这些需求，而MySQL直到8.0版本也引入相关函数。最新OJ环境已更新至8.0版本，可直接使用窗口函数。
+
+为此，本文提出以下几种解决思路，仅供参考。
+如果有意可关注文末个人公众号，查看一篇更为详尽的分组排名问题。
+
+思路1：单表查询
+由于本题不存在分组排序，只需返回全局第N高的一个，所以自然想到的想法是用order by排序加limit限制得到。需要注意两个细节：
+
+同薪同名且不跳级的问题，解决办法是用group by按薪水分组后再order by
+排名第N高意味着要跳过N-1个薪水，由于无法直接用limit N-1，所以需先在函数开头处理N为N=N-1。
+注：这里不能直接用limit N-1是因为limit和offset字段后面只接受正整数（意味着0、负数、小数都不行）或者单一变量（意味着不能用表达式），也就是说想取一条，limit 2-1、limit 1.1这类的写法都是报错的。
+注：这种解法形式最为简洁直观，但仅适用于查询全局排名问题，如果要求各分组的每个第N名，则该方法不适用；而且也不能处理存在重复值的情况。
+
+代码1
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+    SET N := N-1;
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+            salary
+      FROM 
+            employee
+      GROUP BY 
+            salary
+      ORDER BY 
+            salary DESC
+      LIMIT N, 1
+  );
+END
+查询效率
+
+
+思路2：子查询
+排名第N的薪水意味着该表中存在N-1个比其更高的薪水
+注意这里的N-1个更高的薪水是指去重后的N-1个，实际对应人数可能不止N-1个
+最后返回的薪水也应该去重，因为可能不止一个薪水排名第N
+由于对于每个薪水的where条件都要执行一遍子查询，注定其效率低下
+代码2
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+          DISTINCT e.salary
+      FROM 
+          employee e
+      WHERE 
+          (SELECT count(DISTINCT salary) FROM employee WHERE salary>e.salary) = N-1
+  );
+END
+查询效率
+
+
+思路3：自连接
+一般来说，能用子查询解决的问题也能用连接解决。具体到本题：
+
+两表自连接，连接条件设定为表1的salary小于表2的salary
+以表1的salary分组，统计表1中每个salary分组后对应表2中salary唯一值个数，即去重
+限定步骤2中having 计数个数为N-1，即实现了该分组中表1salary排名为第N个
+考虑N=1的特殊情形(特殊是因为N-1=0，计数要求为0)，此时不存在满足条件的记录数，但仍需返回结果，所以连接用left join
+如果仅查询薪水这一项值，那么不用left join当然也是可以的，只需把连接条件放宽至小于等于、同时查询个数设置为N即可。因为连接条件含等号，所以一定不为空，用join即可。
+注：个人认为无需考虑N<=0的情形，毕竟无实际意义。
+代码3
+mysqlmysql
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+          e1.salary
+      FROM 
+          employee e1 JOIN employee e2 ON e1.salary <= e2.salary
+      GROUP BY 
+          e1.salary
+      HAVING 
+          count(DISTINCT e2.salary) = N
+  );
+END
+查询效率
+
+
+思路4：笛卡尔积
+当然，可以很容易将思路2中的代码改为笛卡尔积连接形式，其执行过程实际上一致的，甚至MySQL执行时可能会优化成相同的查询语句。
+
+代码4
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+          e1.salary
+      FROM 
+          employee e1, employee e2 
+      WHERE 
+          e1.salary <= e2.salary
+      GROUP BY 
+          e1.salary
+      HAVING 
+          count(DISTINCT e2.salary) = N
+  );
+END
+查询效率
+
+
+思路5：自定义变量
+以上方法2-4中均存在两表关联的问题，表中记录数少时尚可接受，当记录数量较大且无法建立合适索引时，实测速度会比较慢，用算法复杂度来形容大概是O(n^2)量级（实际还与索引有关）。那么，用下面的自定义变量的方法可实现O(2*n)量级，速度会快得多，且与索引无关。
+
+自定义变量实现按薪水降序后的数据排名，同薪同名不跳级，即3000、2000、2000、1000排名后为1、2、2、3；
+对带有排名信息的临时表二次筛选，得到排名为N的薪水；
+因为薪水排名为N的记录可能不止1个，用distinct去重
+代码5
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+          DISTINCT salary 
+      FROM 
+          (SELECT 
+                salary, @r:=IF(@p=salary, @r, @r+1) AS rnk,  @p:= salary 
+            FROM  
+                employee, (SELECT @r:=0, @p:=NULL)init 
+            ORDER BY 
+                salary DESC) tmp
+      WHERE rnk = N
+  );
+END
+查询效率
+
+
+思路6：窗口函数
+实际上，在mysql8.0中有相关的内置函数，而且考虑了各种排名问题：
+
+row_number(): 同薪不同名，相当于行号，例如3000、2000、2000、1000排名后为1、2、3、4
+rank(): 同薪同名，有跳级，例如3000、2000、2000、1000排名后为1、2、2、4
+dense_rank(): 同薪同名，无跳级，例如3000、2000、2000、1000排名后为1、2、2、3
+ntile(): 分桶排名，即首先按桶的个数分出第一二三桶，然后各桶内从1排名，实际不是很常用
+显然，本题是要用第三个函数。
+另外这三个函数必须要要与其搭档over()配套使用，over()中的参数常见的有两个，分别是
+
+partition by，按某字段切分
+order by，与常规order by用法一致，也区分ASC(默认)和DESC，因为排名总得有个依据
+注：下面代码仅在mysql8.0以上版本可用，最新OJ已支持。
+
+代码6
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+        SELECT 
+            DISTINCT salary
+        FROM 
+            (SELECT 
+                salary, dense_rank() over(ORDER BY salary DESC) AS rnk
+             FROM 
+                employee) tmp
+        WHERE rnk = N
+  );
+END
+查询效率
+
+
+至此，可以总结MySQL查询的一般性思路是：
+
+能用单表优先用单表，即便是需要用group by、order by、limit等，效率一般也比多表高
+
+不能用单表时优先用连接，连接是SQL中非常强大的用法，小表驱动大表+建立合适索引+合理运用连接条件，基本上连接可以解决绝大部分问题。但join级数不宜过多，毕竟是一个接近指数级增长的关联效果
+
+能不用子查询、笛卡尔积尽量不用，虽然很多情况下MySQL优化器会将其优化成连接方式的执行过程，但效率仍然难以保证
+
+自定义变量在复杂SQL实现中会很有用，例如LeetCode中困难级别的数据库题目很多都需要借助自定义变量实现
+
+如果MySQL版本允许，某些带聚合功能的查询需求应用窗口函数是一个最优选择。除了经典的获取3种排名信息，还有聚合函数、向前向后取值、百分位等，具体可参考官方指南。以下是官方给出的几个窗口函数的介绍：
+
+
+最后的最后再补充一点，本题将查询语句封装成一个自定义函数并给出了模板，实际上是降低了对函数语法的书写要求和难度，而且提供的函数写法也较为精简。然而，自定义函数更一般化和常用的写法应该是分三步：
+
+定义变量接收返回值
+执行查询条件，并赋值给相应变量
+返回结果
+例如以解法5为例，如下写法可能更适合函数初学者理解和掌握：
+
+
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+    # i 定义变量接收返回值
+    DECLARE ans INT DEFAULT NULL;  
+    # ii 执行查询语句，并赋值给相应变量
+    SELECT 
+        DISTINCT salary INTO ans
+    FROM 
+        (SELECT 
+            salary, @r:=IF(@p=salary, @r, @r+1) AS rnk,  @p:= salary 
+        FROM  
+            employee, (SELECT @r:=0, @p:=NULL)init 
+        ORDER BY 
+            salary DESC) tmp
+    WHERE rnk = N;
+    # iii 返回查询结果，注意函数名中是 returns，而函数体中是 return
+    RETURN ans;
+END
 
 
 

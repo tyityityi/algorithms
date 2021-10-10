@@ -82,12 +82,9 @@ Java 运行时**环境**。它是运行**已编译** Java 程序所需的所有�
 
 **常用的通配符为： T，E，K，V，？**
 
-- **？ 表示不确定的 java 类型**
-
-- **`T<type>` 表示具体的一个 java 类型**
-
+- **？: 通配符, 表示不确定的 java 类型**
+- **`T 受限泛型<type>` 表示具体的一个 java 类型**
 - **`K, V <key, value>` 分别代表 java 键值中的 Key Value**
-
 - **E (element) 代表 Element**
 
 #### 1、**泛型类**：
@@ -154,6 +151,10 @@ public static <E> void printArray(E[] inputArray) {
     }
     System.out.println();
 }
+
+public <T> void fun(String str, T ... t){//T...t为可变参数, 可以传入一个或多个
+  
+}
 ```
 
 使用：
@@ -165,6 +166,30 @@ String[] stringArray = { "Hello", "World" };
 printArray(intArray);
 printArray(stringArray);
 ```
+
+### 受限泛型< T extends List> 和 通配符<? extends List> 区别
+
+![image-20211009171608828](imgs/image-20211009171608828.png)
+
+
+
+### 受限泛型 <? extends T>和<? super T>区别?
+
+- **<? extends T>**：是指 “上界通配符（Upper Bounds Wildcards）”
+
+    **副作用**: 上界<? extends T>不能往里存，只能往外取
+
+    上界<? extends Fruit>会使往盘子里放东西的**set( )方法失效**。但**取东西get( )方法还有效**。比如下面例子里两个set()方法，插入Apple和Fruit都报错。
+
+    ![image-20211009171924286](imgs/image-20211009171924286.png)
+
+- **<? super T>**：是指 “下界通配符（Lower Bounds Wildcards）”
+
+    **副作用**: 下界<? super T>不影响往里存，但往外取只能放在Object对象里使用
+
+    下界<? super Fruit>会使从盘子里取东西的**get( )方法部分失效**，只能存放到Object对象里。**set( )方法正常**。
+
+参考https://blog.csdn.net/weixin_30246221/article/details/98702798
 
 ### 类型擦除
 
@@ -998,9 +1023,15 @@ public class Main {
 
 ### 动态代理
 
-可以在运行期动态创建某个interface的实例。
+可以在运行期动态创建某个**interface或类**的实例。
 
-我们仍然先定义了**接口**Hello，但是我们并**不**去编写**实现类**，而是直接通过JDK提供的一个Proxy.**newProxyInstance**()创建了一个Hello接口对象。这种没有实现类但是在运行期动态创建了一个接口对象的方式，我们称为动态代码。JDK提供的动态创建接口对象的方式，就叫动态代理。例如：
+**其实就是代理类为被代理类预处理消息、过滤消息并在此之后将消息转发给被代理类，之后还能进行消息的后置处理。代理类和被代理类通常会存在关联关系(即上面提到的持有的被带离对象的引用)，代理类本身不实现服务，而是通过<u>调用被代理类中的方法来提供服务</u>。**
+
+例如动态代理一个接口:
+
+我们**先定义**了**接口**Hello，但是我们并**不**去编写**实现类**，而是直接通过JDK提供的一个Proxy.**newProxyInstance**()创建了一个Hello接口对象。
+
+这种没有实现类但是在运行期动态创建了一个接口对象的方式，我们称为动态代码。JDK提供的动态创建接口对象的方式，就叫动态代理。例如：
 
 <img src="../imgs/%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86.png" alt="动态代理" style="width:67%;" />
 
