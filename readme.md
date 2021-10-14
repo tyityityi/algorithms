@@ -162,11 +162,13 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
     
 
-8. MESI协议
+8. transient是为了让某对象不序列化, 比如LinkedList中的first节点和last节点
+
+9. MESI协议
 
     https://blog.csdn.net/xiaowenmu1/article/details/89705740
 
-9. PageHelper分页原理
+10. PageHelper分页原理
 
     PageHelper.startPage(pageNum, pageSize);
 
@@ -176,17 +178,23 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
     等于mysql> **SELECT \* \**FROM \*\*table LIMIT 5,10; // 检索记录行 6-15\*\**\***  
 
-10. ###  RPC框架 vs http请求访问远程服务
+11. ###  RPC框架 vs http请求访问远程服务
 
-    成熟的 RPC框架(Dubbo)还提供好了“**服务自动注册与发现**”、"智能**负载均衡**"、“可视化的**服务治理和运维**”、“运行期**流量调度**”等等功能，这些也算是选择 RPC 进行服务注册和发现的一方面原因吧！
+     成熟的 RPC框架(Dubbo)还提供好了“**服务自动注册与发现**”、"智能**负载均衡**"、“可视化的**服务治理和运维**”、“运行期**流量调度**”等等功能，这些也算是选择 RPC 进行服务注册和发现的一方面原因吧！
 
-    - http协议访问会将地址暴露给所有人, dubbo可以依赖注册中心治理服务并提供内部使用;
+     - http协议访问会将地址暴露给所有人, dubbo可以依赖注册中心治理服务并提供内部使用;
 
-    - dubbo中 服务消费者，在消费时，去注册中心查询是否有机器提供对应的服务。例如调用orderService时，可以发现有192.168.1.1和192.168.1.2机器有提供对应的服务。消费者可以根据随机、轮训等规则选择调用哪个服务。在有服务上线或者下线时，注册中心可以对修改的信息进行通知。这样一套流程下来，就完美地实现的服务的动态部署，可以任意部署服务。nacos是目前来说很友好的一个注册中心，他提供了CP+AP。
+     - dubbo中 服务消费者，在消费时，去注册中心查询是否有机器提供对应的服务。例如调用orderService时，可以发现有192.168.1.1和192.168.1.2机器有提供对应的服务。消费者可以根据随机、轮训等规则选择调用哪个服务。在有服务上线或者下线时，注册中心可以对修改的信息进行通知。这样一套流程下来，就完美地实现的服务的动态部署，可以任意部署服务。nacos是目前来说很友好的一个注册中心，他提供了CP+AP。
 
-    - 而http服务并不能提供这些信息, 需要手动维护
+     - 而http服务并不能提供这些信息, 需要手动维护
 
-11. ### RPC框架的实现原理？
+12. ### dubbo暴露服务
+
+     https://www.cnblogs.com/xyj179/p/11490417.html
+
+     ![img](imgs/1410911-20190909094629420-37699547.png)
+
+13. ### RPC框架的实现原理？
 
      dubbo https://www.iteye.com/blog/manzhizhen-2314514
 
@@ -226,7 +234,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
      ![image-20210925150836971](imgs/image-20210925150836971-2553719.png)
 
-12. **CAP**
+14. **CAP**
 
      - C一致性: 分布式系统中数据的一致性
      - A可用性: 分布式系统是否可用
@@ -236,7 +244,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
      ![image-20211007173125834](imgs/image-20211007173125834.png)
 
-13. BASE指的是分布式系统: 
+15. BASE指的是分布式系统: 
 
       不用保证强一致性, 只要做到最终一致性; 
 
@@ -244,7 +252,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
       ![image-20211007173422614](imgs/image-20211007173422614.png)
 
-14. RAFT (CP)强一致性
+     1. RAFT (CP)强一致性
 
       https://www.cnblogs.com/mindwind/p/5231986.html
 
@@ -268,7 +276,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
      - 不同节点，某个位置上日志相同，那么这个位置之前的所有日志一定是相同的
      - Raft never commits log entries from previous terms by counting replicas.
 
-15. Nacos支持CP+AP模式，即Nacos可以根据配置识别为CP模式或AP模式，默认是AP模式。
+16. Nacos支持CP+AP模式，即Nacos可以根据配置识别为CP模式或AP模式，默认是AP模式。
 
      以下的client指服务的消费方
 
@@ -279,7 +287,15 @@ I hope I could code for fun, unfortunately I code to make a living -:)
      根据client注册时的属性，AP，CP同时混合存在，只是对不同的client节点效果不同。Nacos可以很好的解决不同场景的业务需求。
      
 
-16. 幂等性
+17. nacos挂了怎么办
+
+     只是无法获取最新的, 但是本地还有旧的
+
+     使用本地缓存中的服务信息列表, 或者将服务信息持久化, 或者在本地写一份, 或者定期拷贝注册中心的信息?
+
+     如果是单点的注册中心可以考虑采用集群来提高可用性
+
+18. 幂等性
 
       **一、幂等性概念**
       在编程中.一个幂等操作的特点是其任意多次执行所产生的影响均与一次执行的影响相同。幂等函数，或幂等方法，是指可以使用相同参数重复执行，并能获得相同结果的函数。这些函数不会影响系统状态，也不用担心重复执行会对系统造成改变。例如，“getUsername()和setTrue()”函数就是一个幂等函数. 更复杂的操作幂等保证是利用唯一交易号(流水号)实现.
@@ -324,7 +340,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
       **三、总结**
       幂等与你是不是分布式高并发还有JavaEE都没有关系。关键是你的操作是不是幂等的。一个幂等的操作典型如：把编号为5的记录的A字段设置为0这种操作不管执行多少次都是幂等的。一个非幂等的操作典型如：把编号为5的记录的A字段增加1这种操作显然就不是幂等的。要做到幂等性，从接口设计上来说不设计任何非幂等的操作即可。譬如说需求是：当用户点击赞同时，将答案的赞同数量+1。改为：当用户点击赞同时，确保答案赞同表中存在一条记录，用户、答案。赞同数量由答案赞同表统计出来。总之幂等性应该是合格程序员的一个基因，在设计系统时，是首要考虑的问题，尤其是在像支付宝，银行，互联网金融公司等涉及的都是钱的系统，既要高效，数据也要准确，所以不能出现多扣款，多打款等问题，这样会很难处理，用户体验也不好。
 
-17. rabbitmq
+19. rabbitmq
 
      https://snailclimb.gitee.io/javaguide/#/docs/system-design/distributed-system/message-queue/RabbitMQ%E5%85%A5%E9%97%A8%E7%9C%8B%E8%BF%99%E4%B8%80%E7%AF%87%E5%B0%B1%E5%A4%9F%E4%BA%86
 
@@ -382,7 +398,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
      headers 类型的交换器不依赖于路由键的匹配规则来路由消息，而是根据发送的消息内容中的 headers 属性进行匹配。在绑定队列和交换器时指定一组键值对，当发送消息到交换器时，RabbitMQ会获取到该消息的 headers（也是一个键值对的形式)，对比其中的键值对是否完全匹配队列和交换器绑定时指定的键值对，如果完全匹配则消息会路由到该队列，否则不会路由到该队列。headers 类型的交换器性能会很差，而且也不实用，基本上不会看到它的存在。
 
-18. rabbitmq顺序消费
+20. rabbitmq顺序消费
 
      **出现顺序错乱的场景**
 
@@ -395,7 +411,7 @@ I hope I could code for fun, unfortunately I code to make a living -:)
 
      拆分多个queue(这样做是为了不浪费消费者的数量)，每个queue一个consumer，就是多一些queue而已，确实是麻烦点；这样也会造成吞吐量下降，可以在消费者内部采用多线程的方式取消费。
 
-19. 八股文学习
+21. 八股文学习
 
       JAVA方面首先得会基础(随便看什么书，培训班教程也可以)，并发的话如果只是应付面试极客时间有一个课程叫做JAVA并发(好像是这么个名字，忘了)，jvm就那本经典的深入理解JAVA虚拟机(重点是内存管理，垃圾回收，常用监测工具，类文件结构，类加载机制)，然后有时间可以看看effective JAVA这本书，可能要很多面试会用到的知识。最后知乎或者博客搜一搜hashMap,concurrenthashMap,ArrayList,LinkedList等到源码分析，有闲心可以自己写一个hashMap,Lru,Lfu(有些面试可能会让你写)
 

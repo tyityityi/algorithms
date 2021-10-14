@@ -1262,6 +1262,48 @@ select sql_no_cache count(*) from usr;
 
 ## 其他
 
+### mysql求交集, 并集, 差集
+
+union except interscet(**只适用于多个select语句的结果集**): https://www.cnblogs.com/xielong/p/7151882.html
+
+joins(**适用于多表**): https://blog.csdn.net/u014204541/article/details/79739980
+
+![img](imgs/241947220904425.jpg)
+
+**求交集**: where
+
+```sql
+select t1.id,t2.id
+from t1,t2 
+where t1.id=t2.id;
+```
+
+inner join?
+
+```sql
+select t1.id,t2.id
+from t1 inner join t2 
+on t1.id=t2.id;
+```
+
+**求并集**: left join
+
+```sql
+select t1.id,t2.id
+from t1 left join t2 
+on t1.id=t2.id;
+```
+
+**求差集**: 可以用not in, 但是效率低,建议用下面这种,求t1和t2的差集:
+
+```sql
+select id 
+FROM t1 LEFT JOIN t2
+ON t1.id = t2.id where t2.id IS NULL
+```
+
+
+
 ### 案例题1:
 
 如果你在维护一个学校的学生信息数据库，学生登录名的统一格式是”学号@gmail.com", 而学号的规则是：十五位的数字，其中前三位是所在城市编号、第四到第六位是学校编号、第七位到第十位是入学年份、最后五位是顺序编号。
@@ -1339,13 +1381,11 @@ select * from LOL where a = 2 and b > 1000  and c='JJJ疾风剑豪';
 
 > 【参考】@Transactional事务不要滥用。事务会**影响数据库的QPS**，另外使用事务的地方需要考虑各方面的**回滚方案**，包括**缓存回滚、搜索引擎回滚、消息补偿、统计修正**等。
 
-###  Where，Group by，Having
+###  Having, Where，Group by
 
-o  where 子句用来筛选 FROM 子句中指定的操作所产生的行。
+WHERE语句在GROUP BY语句之前；SQL会在分组之前计算WHERE语句。  
 
-o  group by 子句用来分组 where 子句的输出。
-
-o  having 子句用来从分组的结果中筛选行。
+HAVING语句在GROUP BY语句之后；SQL会在分组之后计算HAVING语句。
 
 ###  [红黑树](https://www.nowcoder.com/jump/super-jump/word?word=红黑树)的五个特性记得吗？
 
@@ -1365,11 +1405,59 @@ o  having 子句用来从分组的结果中筛选行。
 
 为了叶子结点存数据,查找,删除高效且稳定为logn
 
+# [数据库设计三大范式](https://www.cnblogs.com/linjiqin/archive/2012/04/01/2428695.html)
+
+为了建立冗余较小、结构合理的数据库，设计数据库时必须遵循一定的规则。在关系型数据库中这种规则就称为范式。范式是符合某一种设计要求的总结。要想设计一个结构合理的关系型数据库，必须满足一定的范式。
+
+​         
+
+在实际开发中最为常见的设计范式有三个：
+
+## 1．第一范式(确保每列保持原子性)
+
+第一范式是最基本的范式。如果数据库表中的所有字段值都是不可分解的原子值，就说明该数据库表满足了第一范式。
+
+第一范式的合理遵循需要根据系统的实际需求来定。比如某些数据库系统中需要用到“地址”这个属性，本来直接将“地址”属性设计成一个数据库表的字段就行。但是如果系统经常会访问“地址”属性中的“城市”部分，那么就非要将“地址”这个属性重新拆分为省份、城市、详细地址等多个部分进行存储，这样在对地址中某一部分操作的时候将非常方便。这样设计才算满足了数据库的第一范式，如下表所示。
+
+![img](https://pic002.cnblogs.com/images/2012/270324/2012040114023352.png)
+
+上表所示的用户信息遵循了第一范式的要求，这样在对用户使用城市进行分类的时候就非常方便，也提高了数据库的性能。
+
+​         
+
+## **2．第二范式(拆分联合主键)**
+
+第二范式在第一范式的基础之上更进一层。第二范式需要确保数据库表中的每一列都和主键相关，而不能只与主键的某一部分相关（主要针对**联合主键**而言）。也就是说在一个数据库表中，一个表中只能保存一种数据，不可以把多种数据保存在同一张数据库表中。
+
+比如要设计一个订单信息表，因为订单中可能会有多种商品，所以要将订单编号和商品编号作为数据库表的联合主键，如下表所示。
+
+ **订单信息表**
+
+![img](https://pic002.cnblogs.com/images/2012/270324/2012040114063976.png)
+
+这样就产生一个问题：这个表中是以订单编号和商品编号作为联合主键。这样在该表中商品名称、单位、商品价格等信息不与该表的主键相关，而仅仅是与商品编号相关。所以在这里违反了第二范式的设计原则。
+
+而如果把这个订单信息表进行拆分，把商品信息分离到另一个表中，把订单项目表也分离到另一个表中，就非常完美了。如下所示。
+
+![img](https://pic002.cnblogs.com/images/2012/270324/2012040114082156.png)
+
+这样设计，在很大程度上减小了数据库的冗余。如果要获取订单的商品信息，使用商品编号到商品信息表中查询即可。
+
+​         
+
+## **3．第三范式(建立外键)**
+
+第三范式需要确保数据表中的每一列数据都和主键直接相关，而不能间接相关。
+
+比如在设计一个订单数据表的时候，可以将客户编号作为一个外键和订单表建立相应的关系。而不可以在订单表中添加关于客户其它信息（比如姓名、所属公司等）的字段。如下面这两个表所示的设计就是一个满足第三范式的数据库表。
+
+![img](https://pic002.cnblogs.com/images/2012/270324/2012040114105477.png)
+
+这样在查询订单信息的时候，就可以使用客户编号来引用客户信息表中的记录，也不必在订单信息表中多次输入客户信息的内容，减小了数据冗余。
+
 # sql语句
 
-#### [596. 超过5名学生的课](https://leetcode-cn.com/problems/classes-more-than-5-students/)
-
-难度简单216
+## [LC596. 超过5名学生的课](https://leetcode-cn.com/problems/classes-more-than-5-students/)
 
 SQL架构
 
@@ -1414,7 +1502,7 @@ having count(distinct student)>=5
 
 
 
-### [LC175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
+## [LC175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
 
 表1: Person
 
@@ -1448,11 +1536,7 @@ on Person.PersonId = Address.PersonId
 ;
 ```
 
-### [181. 超过经理收入的员工](https://leetcode-cn.com/problems/employees-earning-more-than-their-managers/)
-
-难度简单414
-
-SQL架构
+## [LC181. 超过经理收入的员工](https://leetcode-cn.com/problems/employees-earning-more-than-their-managers/)
 
 `Employee` 表包含所有员工，他们的经理也属于员工。每个员工都有一个 Id，此外还有一列对应员工的经理的 Id。
 
@@ -1487,7 +1571,112 @@ where e.Salary > (
 );
 ```
 
-### 排名查询
+## [LC185. 部门工资前三高的所有员工](https://leetcode-cn.com/problems/department-top-three-salaries/)
+
+`Employee` 表包含所有员工信息，每个员工有其对应的工号 `Id`，姓名 `Name`，工资 `Salary` 和部门编号 `DepartmentId` 。
+
+```
++----+-------+--------+--------------+
+| Id | Name  | Salary | DepartmentId |
++----+-------+--------+--------------+
+| 1  | Joe   | 85000  | 1            |
+| 2  | Henry | 80000  | 2            |
+| 3  | Sam   | 60000  | 2            |
+| 4  | Max   | 90000  | 1            |
+| 5  | Janet | 69000  | 1            |
+| 6  | Randy | 85000  | 1            |
+| 7  | Will  | 70000  | 1            |
++----+-------+--------+--------------+
+```
+
+`Department` 表包含公司所有部门的信息。
+
+```
++----+----------+
+| Id | Name     |
++----+----------+
+| 1  | IT       |
+| 2  | Sales    |
++----+----------+
+```
+
+编写一个 SQL 查询，找出每个部门获得前三高工资的所有员工。例如，根据上述给定的表，查询结果应返回：
+
+```
++------------+----------+--------+
+| Department | Employee | Salary |
++------------+----------+--------+
+| IT         | Max      | 90000  |
+| IT         | Randy    | 85000  |
+| IT         | Joe      | 85000  |
+| IT         | Will     | 70000  |
+| Sales      | Henry    | 80000  |
+| Sales      | Sam      | 60000  |
++------------+----------+--------+
+```
+
+**解释：**
+
+IT 部门中，Max 获得了最高的工资，Randy 和 Joe 都拿到了第二高的工资，Will 的工资排第三。销售部门（Sales）只有两名员工，Henry 的工资最高，Sam 的工资排第二。
+
+解题思路：
+回忆一下 count 函数
+
+MySql
+
+count(字段名)  # 返回表中该字段总共有多少条记录
+回忆一下 DISTINCT 关键字
+
+MySql
+
+DISTINCT 字段名   # 过滤字段中的重复记录
+我们先找出公司里前 3 高的薪水，意思是**不超过三个值比这些值大**
+
+MySql
+
+```sql
+SELECT e1.Salary 
+FROM Employee AS e1
+WHERE 
+		(SELECT  count(DISTINCT e2.Salary) 
+		 FROM	Employee AS e2 
+	 	 WHERE	e1.Salary < e2.Salary 	AND e1.DepartmentId = e2.DepartmentId) 
+	 	 <3 ;
+```
+
+
+举个栗子：
+当 e1 = e2 = [4,5,6,7,8]
+
+e1.Salary = 4，e2.Salary 可以取值 [5,6,7,8]，count(DISTINCT e2.Salary) = 4
+
+e1.Salary = 5，e2.Salary 可以取值 [6,7,8]，count(DISTINCT e2.Salary) = 3
+
+e1.Salary = 6，e2.Salary 可以取值 [7,8]，count(DISTINCT e2.Salary) = 2
+
+e1.Salary = 7，e2.Salary 可以取值 [8]，count(DISTINCT e2.Salary) = 1
+
+e1.Salary = 8，e2.Salary 可以取值 []，count(DISTINCT e2.Salary) = 0
+
+最后 3 > count(DISTINCT e2.Salary)，所以 e1.Salary 可取值为 [6,7,8]，即集合前 3 高的薪水
+
+再把表 Department 和表 Employee 连接，获得各个部门工资前三高的员工。
+
+```sql
+select d.Name as Department, e.Name as Employee, e.Salary as Salary
+from Employee e, Department d
+where e.DepartmentId = d.Id
+and (select count(distinct e1.Salary)
+    from Employee e1
+    where e1.Salary > e.Salary
+    and e1.DepartmentId = e.DepartmentId
+    ) < 3
+order by d.Name, e.Salary desc
+```
+
+
+
+## 排名查询
 
 排名是数据库中的一个经典题目，实际上又根据排名的具体细节可分为3种场景：
 

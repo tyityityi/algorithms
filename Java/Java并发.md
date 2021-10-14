@@ -70,6 +70,222 @@ public class MultiThread {
 
 **堆和方法区是所有线程共享的资源**，其中**堆**是**进程中**最大的一块**内存**，主要用于存放**新创建的对象** (几乎所有对象都在这里分配内存)，**方法区**主要用于存放**已被加载的类信息、常量、静态变量、即时编译器编译后的代码**等数据。
 
+# 线程创建与使用
+
+## 实现多线程的方法
+
+### 继承Thread类, 重写run()方法
+
+```java
+public class TestExtendsThread extends Thread {
+
+  public static void main(String[] args) {
+    TestExtendsThread thread1 = new TestExtendsThread();
+    thread1.start();
+  }
+
+  @Override
+  public void run() {
+    System.out.println("继承了 Thread 类");
+  }
+}
+
+```
+
+
+
+### 实现Runnable接口, 实现run()方法
+
+`Runnable`自 Java 1.0 以来一直存在，但`Callable`仅在 Java 1.5 中引入,目的就是为了来处理`Runnable`不支持的用例。
+
+```java
+@FunctionalInterface
+public interface Runnable {
+  	/**
+    * 被线程执行，没有返回值也无法抛出异常
+    */
+    public abstract void run();
+}
+```
+
+```java
+public class TestImplRunnable implements Runnable {
+
+  public static void main(String[] args) {
+    TestImplRunnable runnable = new TestImplRunnable();
+    Thread thread = new Thread(runnable);
+    thread.start();
+  }
+
+
+  @Override
+  public void run() {
+    System.out.println("实现了 Runnable 接口");
+  }
+}
+```
+
+### 实现Callable接口, 实现call()方法
+
+```java
+public interface Callable<V> {
+    /**
+     * 计算结果，或在无法这样做时抛出异常。
+     * @return 计算得出的结果
+     * @throws 如果无法计算结果，则抛出异常
+     */
+    V call() throws Exception;
+}
+```
+
+**`Runnable` 接口** **不会返回结果**或**抛出检查异常**，但是 **`Callable` 接口** 可以。所以，如果任务不需要返回结果或抛出异常推荐使用 **`Runnable` 接口**.
+
+工具类 `Executors` 可以实现将 `Runnable` 对象转换成 `Callable` 对象。（`Executors.callable(Runnable task)` 或 `Executors.callable(Runnable task, Object result)`）。
+
+### 通过Future保存异步计算的结果
+
+Future就是对于具体的Runnable或者Callable任务的执行结果进行取消、查询是否完成、获取结果。必要时可以通过get方法获取执行结果，该方法会阻塞直到任务返回结果。
+
+想获得Callable的返回值就需要用到Future这个接口，Futrue可以监视目标线程调用call的情况，当你调用Future的get()方法以获得结果时，当前线程就开始阻塞，直接call方法结束返回结果。
+
+```java
+public interface Future<V> {
+  	//用来取消任务，如果取消任务成功则返回true，如果取消任务失败则返回false。
+  	//参数mayInterruptIfRunning表示是否允许取消正在执行却没有执行完毕的任务，如果设置true，则表示可以取消正在执行过程中的任务。
+    boolean cancel(boolean mayInterruptIfRunning);
+    //表示任务是否被取消成功，如果在任务正常完成前被取消成功，则返回 true
+    boolean isCancelled();
+  	//表示任务是否已经完成，若任务完成，则返回true
+    boolean isDone();
+  	//用来获取执行结果，这个方法会产生阻塞，会一直等到任务执行完毕才返回。这里的阻塞需要解释一下，阻塞的是当前调用get方法的线程，直到get方法返回结果才能继续向下执行，如果get方法一直没有返回值，那么当前线程会一直阻塞下去
+    V get() throws InterruptedException, ExecutionException;
+  	//获取执行结果，如果在指定时间内，还没获取到结果，就直接返回null，这个就避免了一直获取不到结果使得当前线程一直阻塞的情况发生
+    V get(long timeout, TimeUnit unit)
+        throws InterruptedException, ExecutionException, TimeoutException;
+}
+```
+
+例子:
+
+使用继承了`ExecutorService`的线程池`ThreadPoolExecutor`中的`submit`方法，将`Callable`直接提交创建`Future`。
+
+```java
+import java.util.concurrent.*;
+public class FutureExample {
+    static class MyCallable implements Callable<String> {
+        @Override
+        public String call() throws Exception {
+            System.out.println("do something in callable");
+            Thread.sleep(5000);
+            return "Ok";
+        }
+    }
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        Future<String> future = executorService.submit(new MyCallable());
+        System.out.println("do something in main");
+        Thread.sleep(1000);
+        String result = future.get();
+        System.out.println("result: " + result);
+    }
+}
+```
+
+### **FutureTask**
+
+首先看下FutureTask的继承关系图
+
+![img](imgs/v2-f217e86cab7d91887648be1c460d3f46_720w.jpg)
+
+可以看出RunnableFuture继承了Runnable接口和Future接口，而FutureTask实现了RunnableFuture接口。所以它既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值。
+
+Future是一个接口，FutureTask是Future的一个实现类，并实现了Runnable，因此FutureTask可以传递到线程对象Thread中新建一个线程执行。所以可以通过Excutor(线程池)来执行，也可传递给Thread对象执行。
+
+如果在主线程中需要执行比较耗时的操作，但又不想阻塞主线程时，可以把这些作业交给Future对象在后台完成，当主线程将来需要时，就可以通过Future对象获得后台作业的计算结果或者执行状态。
+
+FutureTask是为了弥补Thread的不足而设计的，它可以让程序员准确地知道线程什么时候执行完成并获得到线程执行完成后返回的结果（如果有需要）。
+
+FutureTask是一种可以取消的异步的计算任务。它的计算是通过Callable实现的，它等价于可以携带结果的Runnable，并且有三个状态：等待、运行和完成。完成包括所有计算以任意的方式结束，包括正常结束、取消和异常。
+
+```java
+//传入的参数是Callable具有返回值，这就说明可以通过FutureTask获取Callable的返回值
+public FutureTask(Callable<V> callable) {
+    if (callable == null)
+        throw new NullPointerException();
+    //将传入的callable赋值给callable
+    this.callable = callable;
+    //将初始状态设置为new状态
+    this.state = NEW;       // ensure visibility of callable
+}
+//这个传入d额是Runnable，通过Executors.callable方法转换成Callable可以进行返回值
+public FutureTask(Runnable runnable, V result) {
+     //将Runnable转换成Callable
+    this.callable = Executors.callable(runnable, result);
+    //将初始状态设置为new状态
+    this.state = NEW;       // ensure visibility of callable
+}
+```
+
+例子: FutureTask和Callable
+
+```java
+import java.util.concurrent.*
+public class FutureTaskWithThread {
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
+        FutureTask<String> futureTask = new FutureTask<>(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                System.out.println("do something in callable");
+                Thread.sleep(5000);
+                return "Ok";
+            }
+        });
+        new Thread(futureTask).start();
+        System.out.println("do something in main");
+        Thread.sleep(1000);
+        String result = futureTask.get();
+        System.out.println("result: " + result);
+    }
+}
+```
+
+
+
+##  execute()和 submit()方法的区别
+
+1. **`execute()`方法用于提交不需要返回值的任务，所以无法判断任务是否被线程池执行成功与否；**
+2. **`submit()`方法用于提交需要返回值的任务。线程池会返回一个 `Future` 类型的对象，通过这个 `Future` 对象可以判断任务是否执行成功**，并且可以通过 **`Future` 的 `get()`方法来获取返回值**，`get()`方法会阻塞当前线程直到任务完成，而使用 `get(long timeout，TimeUnit unit)`方法则会阻塞当前线程一段时间后立即返回，这时候有可能任务没有执行完。
+
+我们以 **`AbstractExecutorService` 接口** 中的一个 `submit` 方法为例子来看看源代码：
+
+```java
+public Future<?> submit(Runnable task) {
+    if (task == null) throw new NullPointerException();
+    RunnableFuture<Void> ftask = newTaskFor(task, null);
+    execute(ftask);
+    return ftask;
+}
+```
+
+上面方法调用的 `newTaskFor` 方法返回了一个 `FutureTask` 对象。
+
+```java
+protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+    return new FutureTask<T>(runnable, value);
+}
+```
+
+我们再来看看`execute()`方法：
+
+```java
+public void execute(Runnable command) {
+  	...
+    //没有返回值
+}
+```
+
+
+
 # 并发（多线程）
 
 ## 并发与并行的区别
@@ -111,7 +327,7 @@ Java 线程在运行的**生命周期**中的指定时刻只可能处于下面 6
 
 - 线程创建之后它将处于 **NEW（新建）** 状态，调用 `start()` 方法后开始运行，线程这时候处于 **READY（可运行）** 状态。可运行状态的线程获得了 CPU 时间片（timeslice）后就处于 **RUNNING（运行）** 状态；
 
-> 在操作系统中层面线程有 READY 和 RUNNING 状态，而在 JVM 层面只能看到 RUNNABLE 状态，所以 Java 系统一般将这两个状态统称为 **RUNNABLE（运行中）** 状态 。JVM不区分这两种状态是因为现在的**时分**（time-sharing）**多任务**（multi-task）**操作系统**架构通常都是用所谓的“**时间分片**（time quantum or time slice）”方式进行**抢占式**（preemptive）轮转调度（round-robin式），一个线程一次最多只能在 CPU 上运行比如 10-20ms 的时间，时间片用后就要被切换下来放入调度队列的末尾等待再次调度。线程切换很快，这两种状态没有本质的区别。
+> 在操作系统中层面线程有 READY 和 RUNNING 状态，而在 JVM 层面只能看到 RUNNABLE 状态，所以 **Java 系统一般将READY和RUNNING统称**为 **RUNNABLE（运行中）** 状态 。JVM不区分这两种状态是因为现在的**时分**（time-sharing）**多任务**（multi-task）**操作系统**架构通常都是用所谓的“**时间分片**（time quantum or time slice）”方式进行**抢占式**（preemptive）轮转调度（round-robin式），一个线程一次最多只能在 CPU 上运行比如 10-20ms 的时间，时间片用后就要被切换下来放入调度队列的末尾等待再次调度。线程切换很快，这两种状态没有本质的区别。
 
 - 当线程执行 `wait()`方法之后，线程进入 **WAITING（等待）** 状态。进入等待状态的线程需要依靠其他线程的**通知notify**才能够返回到运行状态；
 
@@ -126,15 +342,14 @@ Java 线程在运行的**生命周期**中的指定时刻只可能处于下面 6
 
 **区别**：
 
+- wait()是Object方法, sleep()是Thread类的方法
 - 两者最主要的区别在于：**`sleep()` 方法没有释放锁，而 `wait()` 方法释放了锁** 。
 - `wait()` 通常被用于线程间交互/通信；`sleep() `通常被用于暂停执行。
 - `wait()` 方法被调用后，**线程不会自动苏醒**(但也可以使用 `wait(long timeout)` **超时后线程会自动苏醒**)，需要**别的线程**调用**同一个对象上的 `notify() `或者 `notifyAll()` 方法**；`sleep() `方法执行完成后，线程会**自动苏醒**。或者。
 
 ### 调用 start() 方法时会执行 run() 方法，为什么不能直接调用 run() 方法？
 
-**总结： 调用 `start()` 方法方可启动线程并使线程进入就绪状态，直接执行 `run()` 方法会当成一个main线程下的普通方法执行，不会以多线程的方式执行。**
-
-new 一个 Thread，线程进入了新建NEW状态。调用 `start()`方法，会启动一个线程并使线程进入了就绪RUNNABLE状态，当分配到时间片后就可以开始运行了。 **`start()` 会执行线程的相应准备工作，然后自动执行 `run()` 方法的内容，这是真正的启动一个线程工作。** 但是，**直接执行 `run()` 方法，会把 `run()` 方法当成一个 main 线程下的普通方法去执行，并不会在某个线程中执行它，**所以这并不是多线程工作。
+new 一个 Thread，线程进入了新建NEW状态。调用 `start()`方法，会启动一个线程并使线程进入了就绪RUNNABLE状态，当分配到时间片后就可以开始运行了。 **`start()` 会执行线程的相应准备工作，然后<u>自动执行 `run()` 方法</u>的内容，这是真正的启动一个线程工作。** 但是，**直接执行 `run()` 方法，会把 `run()` 方法当成一个 main 线程下的普通方法去执行，并不会在某个线程中执行它，不会以多线程的方式执行。**
 
 ## 上下文切换
 
@@ -220,9 +435,9 @@ Thread[线程 2,5,main]waiting get resource1
 
 **如何预防死锁？** 破坏死锁的产生的必要条件即可：
 
-1. **破坏请求与保持条件** ：一次性申请所有的资源。
-2. **破坏不剥夺条件** ：占用部分资源的线程进一步申请其他资源时，如果申请不到，可以主动释放它占有的资源。
-3. **破坏循环等待条件** ：靠按序申请资源来预防。按某一顺序申请资源，释放资源则反序释放。破坏循环等待条件。
+1. **破坏请求与保持条件** ：一次性**申请所有的资源**。
+2. **破坏不剥夺条件** ：占用部分资源的线程进一步申请其他资源时，如果申请不到，可以**主动释放它占有的资源**。
+3. **破坏循环等待条件** ：靠按序申请资源来预防。**按顺序申请资源**，释放资源则反序释放。破坏循环等待条件。
 
 避免死锁就是在资源分配时，借助于算法（比如银行家算法）对资源分配进行计算评估，使其进入安全状态。
 
@@ -339,7 +554,7 @@ atomicStampedRef.compareAndSet(1,2,atomicStampedRef.getStamp(),atomicStampedRef.
 
 
 
-# synchronized 关键字u
+# synchronized 关键字
 
 <img src="https://snailclimb.gitee.io/javaguide/docs/java/multi-thread/images/interview-questions/synchronized%E5%85%B3%E9%94%AE%E5%AD%97.png" alt="img" style="width:70%;" />
 
@@ -351,9 +566,9 @@ atomicStampedRef.compareAndSet(1,2,atomicStampedRef.getStamp(),atomicStampedRef.
 
 庆幸的是在 Java 6 之后 Java 官方对从 JVM 层面对 `synchronized` 较大优化，如**自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁**等技术来减少锁操作的开销。
 
-## synchronized 关键字的使用
+## synchronized 修饰哪些东西
 
-### **1.修饰实例方法:** 
+### **1.修饰<u>实例方法</u>(对象实例锁):** 
 
 作用于当前**对象实例**加锁，进入同步代码前要获得 **当前对象实例的锁**
 
@@ -363,7 +578,7 @@ synchronized void method() {
 }
 ```
 
-### **2.修饰静态方法:** 
+### **2.修饰<u>静态方法</u>(全局锁):** 
 
 也就是给**当前类**加锁，会**作用于类的所有<u>对象实例</u>** ，进入同步代码前要获得 **当前 class 的锁**。因为静态成员不属于任何一个实例对象，是类成员（ *static 表明这是该类的一个静态资源，不管 new 了多少个对象，只有一份*）。所以，如果一个线程 A 调用一个**<u>实例对象</u>的非静态 `synchronized` 方法**，而线程 B 需要调用这个**<u>实例对象所属类</u>的静态 `synchronized` 方法**，是允许的，不会发生互斥现象，**因为访问静态 `synchronized` 方法占用的锁是当前<u>类</u>的锁，而访问<u>非</u>静态 `synchronized` 方法占用的锁是当前<u>实例对象锁</u>**。
 
@@ -373,9 +588,9 @@ synchronized static void method() {
 }
 ```
 
-### **3.修饰代码块** ：
+### **3.修饰<u>代码块</u>** (对象实例锁)：
 
-指定加锁<u>对象</u>，对给定对象/类加锁。`synchronized(this|object)` 表示进入同步代码库前要获得**给定对象的锁**。`synchronized(类.class)` 表示进入同步代码前要获得 **当前 class 的锁**
+指定加锁<u>对象</u>，对给定对象/类加锁。`synchronized(this|object)` 表示进入同步代码库前要获得**给定对象的锁**。`synchronized(类.class)` 表示进入同步代码前要获得 **当前 对象实例 的锁**
 
 ```java
 synchronized(this) {
@@ -573,7 +788,7 @@ PS:**GC标记信息** 后两位11
 
 ##### 轻量级锁加锁
 
-线程在执行同步块之前, JVM会先在当前线程的栈帧中创建用户**存储锁记录Lock Record的空间**, 并将**对象头中的MarkWord复制到锁记录Lock Record**中. 然后线程尝试使用**CAS**将**对象头中的MarkWord替换为指向锁记录Lock Record的指针**. 如果成功, 当前线程**获得锁**; 如果失败, 表示**其它线程竞争锁**, **当前线程便尝试使用自旋来获取锁**, 之后再来的线程, 发现是轻量级锁, 就开始进行**自旋**.
+线程在执行同步块之前, JVM会先在**当前线程的栈帧**中创建用户**存储锁记录Lock Record的空间**, 并将**对象头中的MarkWord复制到锁记录Lock Record**中. 然后线程尝试使用**CAS**将**对象头中的MarkWord替换为指向锁记录Lock Record的指针**. 如果成功, 当前线程**获得锁**; 如果失败, 表示**其它线程竞争锁**, **当前线程便尝试使用自旋来获取锁**, 之后再来的线程, 发现是轻量级锁, 就开始进行**自旋**.
 
 ##### 轻量级锁解锁
 
@@ -731,7 +946,14 @@ public enum Singleton{
 
 ## 两者都是可重入锁
 
-**“可重入锁”** 指的是自己可以再次获取自己的内部锁。比如一个线程获得了某个对象的锁，此时这个对象锁还没有释放，当其再次想要获取这个对象的锁的时候还是可以获取的，如果不可锁重入的话，就会造成死锁。同一个线程每次获取锁，锁的计数器都自增 1，所以要等到锁的计数器下降为 0 时才能释放锁。
+**“可重入锁”** 指的是自己可以再次获取自己的内部锁。**比如一个线程获得了某个对象的锁，此时这个对象锁还没有释放，当其再次想要获取这个对象的锁的时候还是可以获取的，如果不可锁重入的话，就会造成死锁**。同一个线程每次获取锁，锁的计数器都自增 1，所以要等到锁的计数器下降为 0 时才能释放锁。
+
+**可重入锁最大的作用是避免死锁。**
+**在很多情况下线程需要多次进入锁内执行任务。**
+**我讲一个应用场景就是比如数据库事务的实现过程中。**
+
+**场景：add操作将会获取锁，若一个事务当中多次add，就应该允许该线程多次进入该临界区。**
+**synchronized锁也是个可重入锁，比如一个类当中的两个非静态方法都被synchronized修饰，则线程在获取synchronized锁访问一个方法时是可以进入另一个synchronized方法的（PS：应该也能进入static方法的synchronized修饰临界区的，因为是两把不同的锁，表现的不是可重入的特性）****
 
 ## synchronized 依赖于 JVM 而 ReentrantLock 依赖于 JDK
 
@@ -976,68 +1198,6 @@ ThreadLocalMap 中 Entry[] table 的大小必须是 2 的 N 次方（len = 2^N�
 - **提高响应速度**。当任务到达时，**任务可以不需要的等到线程创建**就能**立即执行**。
 - **提高线程的可管理性**。线程是稀缺资源，如果无限制的创建，不仅会消耗系统资源，还会降低系统的稳定性，使用线程池可以进行**统一的分配，调优和监控**。
 
-## 实现 Runnable 接口和 Callable 接口的区别
-
-`Runnable`自 Java 1.0 以来一直存在，但`Callable`仅在 Java 1.5 中引入,目的就是为了来处理`Runnable`不支持的用例。
-
-**`Runnable` 接口** **不会返回结果**或**抛出检查异常**，但是 **`Callable` 接口** 可以。所以，如果任务不需要返回结果或抛出异常推荐使用 **`Runnable` 接口** ，这样代码看起来会更加简洁。
-
-```java
-Runnable.java
-@FunctionalInterface
-public interface Runnable {
-   /**
-    * 被线程执行，没有返回值也无法抛出异常
-    */
-    public abstract void run();
-}
-Callable.java
-@FunctionalInterface
-public interface Callable<V> {
-    /**
-     * 计算结果，或在无法这样做时抛出异常。
-     * @return 计算得出的结果
-     * @throws 如果无法计算结果，则抛出异常
-     */
-    V call() throws Exception;
-}
-```
-
-工具类 `Executors` 可以实现将 `Runnable` 对象转换成 `Callable` 对象。（`Executors.callable(Runnable task)` 或 `Executors.callable(Runnable task, Object result)`）。
-
-##  execute()和 submit()方法的区别
-
-1. **`execute()`方法用于提交不需要返回值的任务，所以无法判断任务是否被线程池执行成功与否；**
-2. **`submit()`方法用于提交需要返回值的任务。线程池会返回一个 `Future` 类型的对象，通过这个 `Future` 对象可以判断任务是否执行成功**，并且可以通过 **`Future` 的 `get()`方法来获取返回值**，`get()`方法会阻塞当前线程直到任务完成，而使用 `get(long timeout，TimeUnit unit)`方法则会阻塞当前线程一段时间后立即返回，这时候有可能任务没有执行完。
-
-我们以 **`AbstractExecutorService` 接口** 中的一个 `submit` 方法为例子来看看源代码：
-
-```java
-public Future<?> submit(Runnable task) {
-    if (task == null) throw new NullPointerException();
-    RunnableFuture<Void> ftask = newTaskFor(task, null);
-    execute(ftask);
-    return ftask;
-}
-```
-
-上面方法调用的 `newTaskFor` 方法返回了一个 `FutureTask` 对象。
-
-```java
-protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
-    return new FutureTask<T>(runnable, value);
-}
-```
-
-我们再来看看`execute()`方法：
-
-```java
-public void execute(Runnable command) {
-  	...
-    //没有返回值
-}
-```
-
 ## 如何创建线程池
 
 《阿里巴巴 Java 开发手册》中强制线程池不允许使用 Executors 去创建，而是通过 **ThreadPoolExecutor** 的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险
@@ -1047,13 +1207,17 @@ public void execute(Runnable command) {
 > - **FixedThreadPool 和 SingleThreadExecutor** ： 允许请求的**队列长度**为 Integer.MAX_VALUE ，可能堆积大量的请求，从而导致 OOM。
 > - **CachedThreadPool 和 ScheduledThreadPool** ： 允许创建的**线程数量**为 Integer.MAX_VALUE ，可能会创建大量线程，从而导致 OOM。
 
-### **1. 通过构造方法ThreadPoolExecutor实现**(推荐)
+### **ThreadPoolExecutor**(推荐)
+
+通过构造方法ThreadPoolExecutor实现
 
 ![ThreadPoolExecutor构造方法](imgs/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f546872656164506f6f6c4578656375746f722545362539452538342545392538302541302545362539362542392545362542332539352e706e67.jpeg)
 
-### **2. 通过 Executor 框架的工具类 Executors 来实现**
+### **Executors**
 
-我们可以创建三种类型的 ThreadPoolExecutor：
+通过 Executor 框架的工具类 Executors 来实现
+
+我们可以创建三种类型的 **ThreadPoolExecutor**：
 
 - **FixedThreadPool** ： 该方法返回一个固定线程数量的线程池。该线程池中的线程数量始终不变。当有一个新的任务提交时，线程池中若有空闲线程，则立即执行。若没有，则新的任务会被暂存在一个任务队列中，待有线程空闲时，便处理在任务队列中的任务。
 - **SingleThreadExecutor：** 方法返回一个只有一个线程的线程池。若多余一个任务被提交到该线程池，任务会被保存在一个任务队列中，待线程空闲，按先入先出的顺序执行队列中的任务。
@@ -1067,7 +1231,7 @@ public void execute(Runnable command) {
 
 [![Executor框架的工具类](https://camo.githubusercontent.com/764b0fb2d22df745240850ae2d874e3bbb798494d5d32d6e3ca7eee44186c3b8/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4578656375746f722545362541312538362545362539452542362545372539412538342545352542372541352545352538352542372545372542312542422e706e67)](https://camo.githubusercontent.com/764b0fb2d22df745240850ae2d874e3bbb798494d5d32d6e3ca7eee44186c3b8/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f4578656375746f722545362541312538362545362539452542362545372539412538342545352542372541352545352538352542372545372542312542422e706e67)
 
-## ThreadPoolExecutor 类分析
+## `ThreadPoolExecutor`构造函数参数(重要)
 
 `ThreadPoolExecutor` 类中提供的四个构造方法。我们来看最长的那个，其余三个都是在这个构造方法的基础上产生（其他几个构造方法说白点都是给定某些默认参数的构造方法比如默认制定拒绝策略是什么）.
 
@@ -1098,15 +1262,13 @@ public ThreadPoolExecutor(int corePoolSize,
 }
 ```
 
-### `ThreadPoolExecutor`构造函数参数(重要)
-
-#### **`ThreadPoolExecutor` 3 个最重要的参数：corePoolSize, maximumPoolSize**, workQueue
+最重要的三个参数:
 
 - **`corePoolSize` :** 核心线程数定义了**最小可以同时运行的线程数量**。
 - **`workQueue`:** 当新任务来的时候会先判断当前运行的线程数量**是否达到核心线程数**，如果达到的话，新任务就会被存放在队列中。
 - **`maximumPoolSize` :** 当队列中存放的**任务**达到**队列容量**的时候，当前可以**同时运行的线程数量变为最大线程数**
 
-#### `ThreadPoolExecutor`其他常见参数:
+`ThreadPoolExecutor`其他常见参数:
 
 1. **`keepAliveTime`**:当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，**核心线程外的线程不会立即销毁**，而是会**等待，超过了 `keepAliveTime`才会被回收销毁；**
 2. **`unit`** : `keepAliveTime` 参数的时间单位。
@@ -1114,8 +1276,6 @@ public ThreadPoolExecutor(int corePoolSize,
 4. **`handler`** :饱和策略。
 
 ### `ThreadPoolExecutor` 饱和策略
-
-**`ThreadPoolExecutor` 饱和策略定义:**
 
 如果当前**同时运行的线程数量**达到**最大线程数量**并且**队列也已经被放满了任务**时，`ThreadPoolTaskExecutor` 定义一些策略:
 
@@ -1334,13 +1494,13 @@ Atomic 是指一个操作是不可中断的,具有原子/原子操作特征的�
 - `AtomicLongArray`：长整形数组原子类
 - `AtomicReferenceArray`：引用类型数组原子类
 
-### **3. 引用类型**
+### **引用类型**
 
 - `AtomicReference`：引用类型原子类
 - `AtomicStampedReference`：原子更新带有**版本号**的引用类型。该类将整数值与引用关联起来，可用于解决原子的更新数据和数据的版本号，可以解决使用 CAS 进行原子更新时可能出现的 ABA 问题。
 - `AtomicMarkableReference` ：原子更新带有**标记位**的引用类型
 
-### 4. **对象的属性修改类型**
+### **对象的属性修改类型**
 
 - `AtomicIntegerFieldUpdater`：原子更新整形字段的更新器
 - `AtomicLongFieldUpdater`：原子更新长整形字段的更新器
